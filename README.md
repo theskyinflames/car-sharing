@@ -2,7 +2,7 @@
 
 This a coding challenge to implement a minimal car-sharing service. In order to keep its complexity low, we're used a simple in-memory persistence layer.
 
-## Problem to solve 
+## Problem to be solved
 
 Design and implement a system to sharing cars between groups of people, for the company CrashedCar.
 
@@ -22,12 +22,12 @@ up to 4, 5 or 6 people.
 People request cars in groups of 1 to 6. People in the same group want to ride
 in the same car. You can assign any group to any car that has enough empty seats
 for them. If it's not possible to accommodate them, they're willing to wait until
-there's a car available for them. Once a car is available for a group, they should immediately 
-enter and drive the car. You cannot ask them to change the car (i.e. swap them to make space for another group). 
+there's a car available for them. Once a car is available for a group, they should immediately
+enter and drive the car. You cannot ask them to change the car (i.e. swap them to make space for another group).
 The trip order should be "First come, first serve".
 
-For example, a group of 6 people is waiting for a car. They cannot enter a car with less than 6 available seats 
-(you can not split the group), so they need to wait. This means that smaller groups after them could enter a car with 
+For example, a group of 6 people is waiting for a car. They cannot enter a car with less than 6 available seats
+(you can not split the group), so they need to wait. This means that smaller groups after them could enter a car with
 fewer available seats before them.
 
 ## API
@@ -150,6 +150,7 @@ Responses:
   payload can't be unmarshalled.
 
 ### Applied approach
+
 It's important to me to decouple the domain from infra layers and test them separately. So I've applied Hexagonal architecture, which means there is a kind of onion architecture. I've also used CQRS by splitting queries from commands. 
 
 Applying HA with DDD and CQRS could be too much at first look. But using them give these advantages:
@@ -161,7 +162,9 @@ Applying HA with DDD and CQRS could be too much at first look. But using them gi
 ![HA diagram](./assets/HA.png)
 
 ### DDD layer
+
 I've identified two entities and a domain service:
+
 * Car: Entity
 * Group: Entity
 * Fleet: Domain service in charge of applying all business rules that link implies cars and Group
@@ -171,45 +174,74 @@ All business rules, as well as the domain invariants, are implemented in this la
 The DDD layer is self-contained and **tested** separately. By doing so, we are sure that the business domain works appropriately.
 
 ### DropOff - Journey strategy
+
 The cars and Groups are, in the domain, in an ordered slice. So, when a group is dropped off, the first waiting group is tried to be added. And so on.
 
 ### CQRS - Application services layer
+
 Here there is an application service for each use case. The application service implements a  *command* or *query* handler. It's in charge of loading the domain state from the storage layer and requesting it for the action of the use case. Once it finishes,  the application service persists in the new domain state in the case of a command.
 
 ### Infra layer
+
 Here is where the service communicates with the outside world. There are two infra ports:
+
 * REST API - the list of HTTP handlers that compounds the REST API
 * Storage service - Where the domain state is persisted. Given that there is no restriction related to that in the challenge, I've tried straightforward storage in memory. IMO, I add more value to the challenge, using my time in implementing HA architecture than adding more complexity with SQL DDD, or worse, by adding an ORM. BTW, the access to the storage layer uses *repository pattern* 
 
 ### Design
-I've applied SOLID principles, keep-it-simple, and clean practices. I hope you'll appreciate it. 
+
+I've applied SOLID principles, keep-it-simple, and clean practices. I hope you'll appreciate it.
+
 * SRP - Each method of the domain has only one responsibility
 * OCP - The domain can be extended without affecting the current functionality
 * ISP - All interface methods are used
 * DIP - Achieved by injecting the implementation of interfaces from the outer layers to the inner ones.
 * LSP - Not sure about how to apply this principle in Go, given that it uses composition instead of inheritance :-)
 
+### Next iterations
+
+For the next iterations, I'd take a look to:
+
+* Inject the Fleet domain service as *DI*, so it will make the app layer test simpler.
+
+* Current implementation is not transactional. Adding transactional storage could also be the next step.
+
+* I've not added *Even-Driven* pattern. But, for example, the command *DropOff* could be split in two commands:
+
+  1. First, a command requires the domain to drop off the group. 
+  2. This generates a domain event to indicate that Ev has freed some seats
+  3. An event listener catches this event and invokes another command to accommodate waiting groups in these seats.
+  That way, the two actions would be tested separately. The drawback here is that we'll have to assume *Eventual-Consistency*
+
+* Adding o11y (observability) integration, with a Prometheus, por example
+
+* Adding persistent storage. A no SQL storage like Redis fits enough if the domain is not more complex. Otherwise, it could be worth adding SQL storage.
+
+
 ### Repo layout
+
 * assets - images of this document
 * scripts - an script to compile the Docker container locally, for development purposes
-* _ci/build/coding-challenge
-  * cmd - where the *main.go* is
-  * internal - used to [reduce the public API surface](https://dave.cheney.net/2019/10/06/use-internal-packages-to-reduce-your-public-api-surface)
-  * internal/app - CQRS layer, application services
-  * internal/domain - where the domain entities and business rules lives
-  * internal/fixtures builders - needed fixtures for the tests
-  * internal/helpers - misc helpers used to improved the code reading
-  * internal/infra - infrastructure layer
-  * internal/infra/repository - storage service. Implements *repository* pattern
-  * internal/infra/api - set of HTTP handlers that compounds the REST API of the service
+* cmd - where the *main.go* is
+* internal - used to [reduce the public API surface](https://dave.cheney.net/2019/10/06/use-internal-packages-to-reduce-your-public-api-surface)
+* internal/app - CQRS layer, application services
+* internal/domain - where the domain entities and business rules lives
+* internal/fixtures builders - needed fixtures for the tests
+* internal/helpers - misc helpers used to improved the code reading
+* internal/infra - infrastructure layer
+* internal/infra/repository - storage service. Implements *repository* pattern
+* internal/infra/api - set of HTTP handlers that compounds the REST API of the service
 
 There are also other files used for development purposes:
+
   * internal/golangci.yml - used as linter
   * internal/revive.toml - used as linter
-* Makefile
+  * Makefile
 
 ### How to run it locally
+
 There is a Make file in the root for that. Only do:
+
 ```sh
   make docker-build
   make docker-run
@@ -219,7 +251,9 @@ There is a Make file in the root for that. Only do:
 These commands will build the Docker image, start it listening in the port 80, and logs the HTTP interactions.
 
 ### Tooling and libs used
+
 To implement the solution I've used:
+
 * Go libs:
   * github.com/go-chi/chi v1.5.4
   * github.com/rs/cors v1.8.2
@@ -231,17 +265,5 @@ To implement the solution I've used:
   * GNU Make 4.3
 
 ### Dockerfile strategy
+
 I've opted for optimizing the Docker image size. So only the binary is added in the resulting image.
-
-### Next iterations
-For the next iterations, I'd take a look to: 
-* Adding o11y (observability) integration, with a Prometheus, por example
-* Adding persistent storage. A no SQL storage like Redis fits enough if the domain is not more complex. Otherwise, it could be worth adding SQL storage.
-* Current implementation is not transactional. Adding transactional storage could also be the next step.
-* I've not added *Even-Driven* pattern. But, for example, the command *DropOff* could be split in two commands: 
-  1. First, a command requires the domain to drop off the group. 
-  2. This generates a domain event to indicate that Ev has freed some seats
-  3. An event listener catches this event and invokes another command to accommodate waiting groups in these seats.
-  That way, the two actions would be tested separately. The drawback here is that we'll have to assume *eventual-consistency*
-* Inject the Fleet domain service as implementation to an interface, so it will make the app layer test simpler.
-
