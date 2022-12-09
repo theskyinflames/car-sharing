@@ -9,10 +9,12 @@ import (
 	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/domain"
 	"theskyinflames/car-sharing/internal/infra/repository"
+
+	"github.com/theskyinflames/cqrs-eda/pkg/bus"
 )
 
 // InitializeFleet is the HTTP handler to initialize the fleet
-func InitializeFleet(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request) {
+func InitializeFleet(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var rq InitializeFleetRqJson
 		if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -39,7 +41,7 @@ func InitializeFleet(ch app.CommandHandler) func(w http.ResponseWriter, r *http.
 		}
 
 		cmd := app.InitializeFleetCmd{Cars: evs}
-		if err := ch.Handle(r.Context(), cmd); err != nil {
+		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
@@ -48,7 +50,7 @@ func InitializeFleet(ch app.CommandHandler) func(w http.ResponseWriter, r *http.
 }
 
 // Journey is the HTTP handler to add a new group
-func Journey(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request) {
+func Journey(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var rq JourneyRqJson
 		if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -69,7 +71,7 @@ func Journey(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request)
 		cmd := app.JourneyCmd{
 			Group: g,
 		}
-		if err := ch.Handle(r.Context(), cmd); err != nil {
+		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
 			if errors.Is(err, repository.ErrPKConflict) {
 				w.WriteHeader(http.StatusConflict)
 				return
@@ -83,7 +85,7 @@ func Journey(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request)
 }
 
 // DropOff is the HTTP handler to drop off a group
-func DropOff(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request) {
+func DropOff(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var rq DropOffRqJson
 		if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -98,7 +100,7 @@ func DropOff(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request)
 		cmd := app.DropOffCmd{
 			GroupID: rq.Id,
 		}
-		if err := ch.Handle(r.Context(), cmd); err != nil {
+		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
 			if errors.Is(err, domain.ErrNotFound) || errors.Is(err, repository.ErrNotFound) {
 				w.WriteHeader(http.StatusNotFound)
 				return
@@ -112,7 +114,7 @@ func DropOff(ch app.CommandHandler) func(w http.ResponseWriter, r *http.Request)
 }
 
 // Locate is the HTTP handler to locate a group
-func Locate(ch app.QueryHandler) func(w http.ResponseWriter, r *http.Request) {
+func Locate(queryBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var rq DropOffRqJson
 		if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -127,7 +129,7 @@ func Locate(ch app.QueryHandler) func(w http.ResponseWriter, r *http.Request) {
 		cmd := app.LocateQuery{
 			GroupID: rq.Id,
 		}
-		queryRs, err := ch.Handle(r.Context(), cmd)
+		queryRs, err := queryBus.Dispatch(r.Context(), cmd)
 		if err != nil {
 			if errors.Is(err, domain.ErrNotFound) || errors.Is(err, repository.ErrNotFound) {
 				w.WriteHeader(http.StatusNotFound)

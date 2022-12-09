@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // InitializeFleetCmd is a Command
@@ -31,18 +33,18 @@ func NewInitializeFleet(gr GroupsRepository, evr CarsRepository) InitializeFleet
 }
 
 // Handle implements the CommandHandler constructor
-func (ch InitializeFleet) Handle(ctx context.Context, cmd Command) error {
+func (ch InitializeFleet) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
 	co, ok := cmd.(InitializeFleetCmd)
 	if !ok {
-		return NewInvalidCommandError(InitializeFleetName, cmd.Name())
+		return nil, NewInvalidCommandError(InitializeFleetName, cmd.Name())
 	}
 
 	if err := ch.gr.RemoveAll(ctx); err != nil {
-		return err
+		return nil, err
 	}
 	if err := ch.evr.RemoveAll(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
-	return ch.evr.AddAll(ctx, co.Cars)
+	return nil, ch.evr.AddAll(ctx, co.Cars)
 }

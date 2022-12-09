@@ -11,9 +11,10 @@ import (
 	"theskyinflames/car-sharing/internal/helpers"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
-func newInvalidQuery() app.Query {
+func newInvalidQuery() cqrs.Query {
 	return &QueryMock{
 		NameFunc: func() string {
 			return "invalid_query"
@@ -25,7 +26,7 @@ func TestLocate(t *testing.T) {
 	randomErr := errors.New("")
 	testCases := []struct {
 		name               string
-		q                  app.Query
+		q                  cqrs.Query
 		gr                 *GroupsRepositoryMock
 		evr                *CarsRepositoryMock
 		expectedCallsToEvr int

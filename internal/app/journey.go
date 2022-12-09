@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // JourneyCmd is a command
@@ -31,36 +33,36 @@ func NewJourney(gr GroupsRepository, evr CarsRepository) Journey {
 }
 
 // Handle implements CommandHandler interface
-func (ch Journey) Handle(ctx context.Context, cmd Command) error {
+func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
 	co, ok := cmd.(JourneyCmd)
 	if !ok {
-		return NewInvalidCommandError(JourneyName, cmd.Name())
+		return nil, NewInvalidCommandError(JourneyName, cmd.Name())
 	}
 
 	wg, err := ch.gr.FindGroupsWithoutCar(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := ch.gr.Add(ctx, co.Group); err != nil {
-		return err
+		return nil, err
 	}
 
 	evs, err := ch.evr.FindAll(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fleet := domain.NewFleet(evs, wg)
 	g, ev := fleet.Journey(co.Group) // try to get the group on a ev
 
 	if !g.IsOnJourney() { // if the g is not in journey, there is not ev to be updated. Otherwise, its list of groups is updated
-		return nil
+		return nil, nil
 	}
 
 	if err := ch.gr.Update(ctx, g); err != nil {
-		return err
+		return nil, err
 	}
 
-	return ch.evr.Update(ctx, ev)
+	return nil, ch.evr.Update(ctx, ev)
 }

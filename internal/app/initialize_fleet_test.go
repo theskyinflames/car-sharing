@@ -11,9 +11,10 @@ import (
 	"theskyinflames/car-sharing/internal/helpers"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
-func newInvalidCommand() app.Command {
+func newInvalidCommand() cqrs.Command {
 	return &CommandMock{
 		NameFunc: func() string {
 			return "invalid_command"
@@ -26,7 +27,7 @@ func TestInitializeFleet(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		cmd             app.Command
+		cmd             cqrs.Command
 		gr              *GroupsRepositoryMock
 		evr             *CarsRepositoryMock
 		expectedErrFunc func(*testing.T, error)
@@ -100,7 +101,7 @@ func TestInitializeFleet(t *testing.T) {
 
 	for _, tc := range testCases {
 		ch := app.NewInitializeFleet(tc.gr, tc.evr)
-		err := ch.Handle(context.Background(), tc.cmd)
+		_, err := ch.Handle(context.Background(), tc.cmd)
 		require.Equal(t, tc.expectedErrFunc == nil, err == nil)
 		if err != nil {
 			tc.expectedErrFunc(t, err)

@@ -11,6 +11,7 @@ import (
 	"theskyinflames/car-sharing/internal/helpers"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 func TestJourney(t *testing.T) {
@@ -18,7 +19,7 @@ func TestJourney(t *testing.T) {
 
 	testCases := []struct {
 		name              string
-		cmd               app.Command
+		cmd               cqrs.Command
 		gr                *GroupsRepositoryMock
 		evr               *CarsRepositoryMock
 		expectedOnJourney bool
@@ -151,7 +152,7 @@ func TestJourney(t *testing.T) {
 
 	for _, tc := range testCases {
 		ch := app.NewJourney(tc.gr, tc.evr)
-		err := ch.Handle(context.Background(), tc.cmd)
+		_, err := ch.Handle(context.Background(), tc.cmd)
 		require.Equal(t, tc.expectedErrFunc == nil, err == nil)
 		if err != nil {
 			tc.expectedErrFunc(t, err)
