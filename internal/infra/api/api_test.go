@@ -16,7 +16,18 @@ import (
 	"theskyinflames/car-sharing/internal/infra/repository"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theskyinflames/cqrs-eda/pkg/bus"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/helpers"
 )
+
+type dispatchableMock struct {
+	name string
+}
+
+func (d dispatchableMock) Name() string {
+	return d.name
+}
 
 func TestInitializeFleet(t *testing.T) {
 	testCases := []struct {
@@ -60,8 +71,8 @@ func TestInitializeFleet(t *testing.T) {
 				{Id: 1, Seats: 5},
 			},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return errors.New("")
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, errors.New("")
 				},
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -72,8 +83,8 @@ func TestInitializeFleet(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.InitializeFleetRqJson{{Id: 1, Seats: 5}},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return nil
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, nil
 				},
 			},
 			expectedStatus: http.StatusOK,
@@ -84,8 +95,8 @@ func TestInitializeFleet(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.InitializeFleetRqJson{},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return nil
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, nil
 				},
 			},
 			expectedStatus: http.StatusOK,
@@ -97,11 +108,14 @@ func TestInitializeFleet(t *testing.T) {
 		require.NoError(t, err)
 		reqBody := strings.NewReader(string(s))
 
-		hnd := api.InitializeFleet(tc.ch)
+		bus := bus.New()
+		bus.Register(app.InitializeFleetName, helpers.BusChHandler(tc.ch))
+
+		hnd := api.InitializeFleet(bus)
 		r := httptest.NewRequest("", "/evs", reqBody)
 		w := httptest.NewRecorder()
 		hnd(w, r)
-		require.Equal(t, tc.expectedStatus, w.Code)
+		require.Equal(t, tc.expectedStatus, w.Code, tc.name)
 	}
 }
 
@@ -139,8 +153,8 @@ func TestJourney(t *testing.T) {
 			then a 500 HTTP status is returned`,
 			rq: api.JourneyRqJson{Id: 1, People: 5},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return errors.New("")
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, errors.New("")
 				},
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -151,8 +165,8 @@ func TestJourney(t *testing.T) {
 			then a 400 HTTP status is returned`,
 			rq: api.JourneyRqJson{},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return nil
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, nil
 				},
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -163,8 +177,8 @@ func TestJourney(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.JourneyRqJson{Id: 1, People: 5},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return nil
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, nil
 				},
 			},
 			expectedStatus: http.StatusOK,
@@ -176,7 +190,10 @@ func TestJourney(t *testing.T) {
 		require.NoError(t, err)
 		reqBody := strings.NewReader(string(s))
 
-		hnd := api.Journey(tc.ch)
+		bus := bus.New()
+		bus.Register(app.JourneyName, helpers.BusChHandler(tc.ch))
+
+		hnd := api.Journey(bus)
 		r := httptest.NewRequest("", "/journey", reqBody)
 		w := httptest.NewRecorder()
 		hnd(w, r)
@@ -211,8 +228,8 @@ func TestDropOff(t *testing.T) {
 			then a 500 HTTP status is returned`,
 			rq: api.DropOffRqJson{Id: 1},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return errors.New("")
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, errors.New("")
 				},
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -223,8 +240,8 @@ func TestDropOff(t *testing.T) {
 			then a 404 HTTP status is returned`,
 			rq: api.DropOffRqJson{Id: 1},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return repository.ErrNotFound
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, repository.ErrNotFound
 				},
 			},
 			expectedStatus: http.StatusNotFound,
@@ -235,8 +252,8 @@ func TestDropOff(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.DropOffRqJson{Id: 1},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ app.Command) error {
-					return nil
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+					return nil, nil
 				},
 			},
 			expectedStatus: http.StatusNoContent,
@@ -248,7 +265,10 @@ func TestDropOff(t *testing.T) {
 		require.NoError(t, err)
 		reqBody := strings.NewReader(string(s))
 
-		hnd := api.DropOff(tc.ch)
+		bus := bus.New()
+		bus.Register(app.DropOffName, helpers.BusChHandler(tc.ch))
+
+		hnd := api.DropOff(bus)
 		r := httptest.NewRequest("", "/dropoff", reqBody)
 		w := httptest.NewRecorder()
 		hnd(w, r)
@@ -285,7 +305,7 @@ func TestLocale(t *testing.T) {
 			then a 500 HTTP status is returned`,
 			rq: api.LocateRqJson{Id: 1},
 			qh: &QueryHandlerMock{
-				HandleFunc: func(ctx context.Context, query app.Query) (app.QueryResult, error) {
+				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 					return nil, errors.New("")
 				},
 			},
@@ -297,7 +317,7 @@ func TestLocale(t *testing.T) {
 			then a 404 HTTP status is returned`,
 			rq: api.LocateRqJson{Id: 1},
 			qh: &QueryHandlerMock{
-				HandleFunc: func(ctx context.Context, query app.Query) (app.QueryResult, error) {
+				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 					return nil, repository.ErrNotFound
 				},
 			},
@@ -309,7 +329,7 @@ func TestLocale(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.LocateRqJson{Id: 1},
 			qh: &QueryHandlerMock{
-				HandleFunc: func(ctx context.Context, query app.Query) (app.QueryResult, error) {
+				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 					return app.LocateResponse{}, nil
 				},
 			},
@@ -321,7 +341,7 @@ func TestLocale(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			rq: api.LocateRqJson{Id: 1},
 			qh: &QueryHandlerMock{
-				HandleFunc: func(ctx context.Context, query app.Query) (app.QueryResult, error) {
+				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 					return app.LocateResponse{
 						IsInJourney: true,
 						Ev:          ev,
@@ -341,7 +361,10 @@ func TestLocale(t *testing.T) {
 		require.NoError(t, err)
 		reqBody := strings.NewReader(string(s))
 
-		hnd := api.Locate(tc.qh)
+		bus := bus.New()
+		bus.Register(app.LocateName, helpers.BusQhHandler(tc.qh))
+
+		hnd := api.Locate(bus)
 		r := httptest.NewRequest("", "/locale", reqBody)
 		w := httptest.NewRecorder()
 		hnd(w, r)

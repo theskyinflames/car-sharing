@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // LocateResponse is a DTO
@@ -37,7 +39,7 @@ func NewLocate(gr GroupsRepository, evr CarsRepository) Locate {
 }
 
 // Handle implements the QueryHandler interface
-func (qh Locate) Handle(ctx context.Context, query Query) (QueryResult, error) {
+func (qh Locate) Handle(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 	q, ok := query.(LocateQuery)
 	if !ok {
 		return nil, NewInvalidQueryError(LocateName, query.Name())

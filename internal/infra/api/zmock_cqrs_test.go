@@ -5,100 +5,29 @@ package api_test
 
 import (
 	"context"
-	"theskyinflames/car-sharing/internal/app"
 	"sync"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
-// Ensure, that CommandHandlerMock does implement app.CommandHandler.
+// Ensure, that CommandMock does implement cqrs.Command.
 // If this is not the case, regenerate this file with moq.
-var _ app.CommandHandler = &CommandHandlerMock{}
+var _ cqrs.Command = &CommandMock{}
 
-// CommandHandlerMock is a mock implementation of app.CommandHandler.
+// CommandMock is a mock implementation of cqrs.Command.
 //
-// 	func TestSomethingThatUsesCommandHandler(t *testing.T) {
+//	func TestSomethingThatUsesCommand(t *testing.T) {
 //
-// 		// make and configure a mocked app.CommandHandler
-// 		mockedCommandHandler := &CommandHandlerMock{
-// 			HandleFunc: func(ctx context.Context, cmd app.Command) error {
-// 				panic("mock out the Handle method")
-// 			},
-// 		}
+//		// make and configure a mocked cqrs.Command
+//		mockedCommand := &CommandMock{
+//			NameFunc: func() string {
+//				panic("mock out the Name method")
+//			},
+//		}
 //
-// 		// use mockedCommandHandler in code that requires app.CommandHandler
-// 		// and then make assertions.
+//		// use mockedCommand in code that requires cqrs.Command
+//		// and then make assertions.
 //
-// 	}
-type CommandHandlerMock struct {
-	// HandleFunc mocks the Handle method.
-	HandleFunc func(ctx context.Context, cmd app.Command) error
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// Handle holds details about calls to the Handle method.
-		Handle []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Cmd is the cmd argument value.
-			Cmd app.Command
-		}
-	}
-	lockHandle sync.RWMutex
-}
-
-// Handle calls HandleFunc.
-func (mock *CommandHandlerMock) Handle(ctx context.Context, cmd app.Command) error {
-	if mock.HandleFunc == nil {
-		panic("CommandHandlerMock.HandleFunc: method is nil but CommandHandler.Handle was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-		Cmd app.Command
-	}{
-		Ctx: ctx,
-		Cmd: cmd,
-	}
-	mock.lockHandle.Lock()
-	mock.calls.Handle = append(mock.calls.Handle, callInfo)
-	mock.lockHandle.Unlock()
-	return mock.HandleFunc(ctx, cmd)
-}
-
-// HandleCalls gets all the calls that were made to Handle.
-// Check the length with:
-//     len(mockedCommandHandler.HandleCalls())
-func (mock *CommandHandlerMock) HandleCalls() []struct {
-	Ctx context.Context
-	Cmd app.Command
-} {
-	var calls []struct {
-		Ctx context.Context
-		Cmd app.Command
-	}
-	mock.lockHandle.RLock()
-	calls = mock.calls.Handle
-	mock.lockHandle.RUnlock()
-	return calls
-}
-
-// Ensure, that CommandMock does implement app.Command.
-// If this is not the case, regenerate this file with moq.
-var _ app.Command = &CommandMock{}
-
-// CommandMock is a mock implementation of app.Command.
-//
-// 	func TestSomethingThatUsesCommand(t *testing.T) {
-//
-// 		// make and configure a mocked app.Command
-// 		mockedCommand := &CommandMock{
-// 			NameFunc: func() string {
-// 				panic("mock out the Name method")
-// 			},
-// 		}
-//
-// 		// use mockedCommand in code that requires app.Command
-// 		// and then make assertions.
-//
-// 	}
+//	}
 type CommandMock struct {
 	// NameFunc mocks the Name method.
 	NameFunc func() string
@@ -114,20 +43,24 @@ type CommandMock struct {
 
 // Name calls NameFunc.
 func (mock *CommandMock) Name() string {
-	if mock.NameFunc == nil {
-		panic("CommandMock.NameFunc: method is nil but Command.Name was just called")
-	}
 	callInfo := struct {
 	}{}
 	mock.lockName.Lock()
 	mock.calls.Name = append(mock.calls.Name, callInfo)
 	mock.lockName.Unlock()
+	if mock.NameFunc == nil {
+		var (
+			sOut string
+		)
+		return sOut
+	}
 	return mock.NameFunc()
 }
 
 // NameCalls gets all the calls that were made to Name.
 // Check the length with:
-//     len(mockedCommand.NameCalls())
+//
+//	len(mockedCommand.NameCalls())
 func (mock *CommandMock) NameCalls() []struct {
 } {
 	var calls []struct {
@@ -138,96 +71,25 @@ func (mock *CommandMock) NameCalls() []struct {
 	return calls
 }
 
-// Ensure, that QueryHandlerMock does implement app.QueryHandler.
+// Ensure, that QueryMock does implement cqrs.Query.
 // If this is not the case, regenerate this file with moq.
-var _ app.QueryHandler = &QueryHandlerMock{}
+var _ cqrs.Query = &QueryMock{}
 
-// QueryHandlerMock is a mock implementation of app.QueryHandler.
+// QueryMock is a mock implementation of cqrs.Query.
 //
-// 	func TestSomethingThatUsesQueryHandler(t *testing.T) {
+//	func TestSomethingThatUsesQuery(t *testing.T) {
 //
-// 		// make and configure a mocked app.QueryHandler
-// 		mockedQueryHandler := &QueryHandlerMock{
-// 			HandleFunc: func(ctx context.Context, query app.Query) (app.QueryResult, error) {
-// 				panic("mock out the Handle method")
-// 			},
-// 		}
+//		// make and configure a mocked cqrs.Query
+//		mockedQuery := &QueryMock{
+//			NameFunc: func() string {
+//				panic("mock out the Name method")
+//			},
+//		}
 //
-// 		// use mockedQueryHandler in code that requires app.QueryHandler
-// 		// and then make assertions.
+//		// use mockedQuery in code that requires cqrs.Query
+//		// and then make assertions.
 //
-// 	}
-type QueryHandlerMock struct {
-	// HandleFunc mocks the Handle method.
-	HandleFunc func(ctx context.Context, query app.Query) (app.QueryResult, error)
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// Handle holds details about calls to the Handle method.
-		Handle []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Query is the query argument value.
-			Query app.Query
-		}
-	}
-	lockHandle sync.RWMutex
-}
-
-// Handle calls HandleFunc.
-func (mock *QueryHandlerMock) Handle(ctx context.Context, query app.Query) (app.QueryResult, error) {
-	if mock.HandleFunc == nil {
-		panic("QueryHandlerMock.HandleFunc: method is nil but QueryHandler.Handle was just called")
-	}
-	callInfo := struct {
-		Ctx   context.Context
-		Query app.Query
-	}{
-		Ctx:   ctx,
-		Query: query,
-	}
-	mock.lockHandle.Lock()
-	mock.calls.Handle = append(mock.calls.Handle, callInfo)
-	mock.lockHandle.Unlock()
-	return mock.HandleFunc(ctx, query)
-}
-
-// HandleCalls gets all the calls that were made to Handle.
-// Check the length with:
-//     len(mockedQueryHandler.HandleCalls())
-func (mock *QueryHandlerMock) HandleCalls() []struct {
-	Ctx   context.Context
-	Query app.Query
-} {
-	var calls []struct {
-		Ctx   context.Context
-		Query app.Query
-	}
-	mock.lockHandle.RLock()
-	calls = mock.calls.Handle
-	mock.lockHandle.RUnlock()
-	return calls
-}
-
-// Ensure, that QueryMock does implement app.Query.
-// If this is not the case, regenerate this file with moq.
-var _ app.Query = &QueryMock{}
-
-// QueryMock is a mock implementation of app.Query.
-//
-// 	func TestSomethingThatUsesQuery(t *testing.T) {
-//
-// 		// make and configure a mocked app.Query
-// 		mockedQuery := &QueryMock{
-// 			NameFunc: func() string {
-// 				panic("mock out the Name method")
-// 			},
-// 		}
-//
-// 		// use mockedQuery in code that requires app.Query
-// 		// and then make assertions.
-//
-// 	}
+//	}
 type QueryMock struct {
 	// NameFunc mocks the Name method.
 	NameFunc func() string
@@ -243,20 +105,24 @@ type QueryMock struct {
 
 // Name calls NameFunc.
 func (mock *QueryMock) Name() string {
-	if mock.NameFunc == nil {
-		panic("QueryMock.NameFunc: method is nil but Query.Name was just called")
-	}
 	callInfo := struct {
 	}{}
 	mock.lockName.Lock()
 	mock.calls.Name = append(mock.calls.Name, callInfo)
 	mock.lockName.Unlock()
+	if mock.NameFunc == nil {
+		var (
+			sOut string
+		)
+		return sOut
+	}
 	return mock.NameFunc()
 }
 
 // NameCalls gets all the calls that were made to Name.
 // Check the length with:
-//     len(mockedQuery.NameCalls())
+//
+//	len(mockedQuery.NameCalls())
 func (mock *QueryMock) NameCalls() []struct {
 } {
 	var calls []struct {
@@ -267,24 +133,154 @@ func (mock *QueryMock) NameCalls() []struct {
 	return calls
 }
 
-// Ensure, that QueryResultMock does implement app.QueryResult.
+// Ensure, that CommandHandlerMock does implement cqrs.CommandHandler.
 // If this is not the case, regenerate this file with moq.
-var _ app.QueryResult = &QueryResultMock{}
+var _ cqrs.CommandHandler = &CommandHandlerMock{}
 
-// QueryResultMock is a mock implementation of app.QueryResult.
+// CommandHandlerMock is a mock implementation of cqrs.CommandHandler.
 //
-// 	func TestSomethingThatUsesQueryResult(t *testing.T) {
+//	func TestSomethingThatUsesCommandHandler(t *testing.T) {
 //
-// 		// make and configure a mocked app.QueryResult
-// 		mockedQueryResult := &QueryResultMock{
-// 		}
+//		// make and configure a mocked cqrs.CommandHandler
+//		mockedCommandHandler := &CommandHandlerMock{
+//			HandleFunc: func(contextMoqParam context.Context, command cqrs.Command) ([]cqrs.Event, error) {
+//				panic("mock out the Handle method")
+//			},
+//		}
 //
-// 		// use mockedQueryResult in code that requires app.QueryResult
-// 		// and then make assertions.
+//		// use mockedCommandHandler in code that requires cqrs.CommandHandler
+//		// and then make assertions.
 //
-// 	}
-type QueryResultMock struct {
+//	}
+type CommandHandlerMock struct {
+	// HandleFunc mocks the Handle method.
+	HandleFunc func(contextMoqParam context.Context, command cqrs.Command) ([]cqrs.Event, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
+		// Handle holds details about calls to the Handle method.
+		Handle []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
+			// Command is the command argument value.
+			Command cqrs.Command
+		}
 	}
+	lockHandle sync.RWMutex
+}
+
+// Handle calls HandleFunc.
+func (mock *CommandHandlerMock) Handle(contextMoqParam context.Context, command cqrs.Command) ([]cqrs.Event, error) {
+	callInfo := struct {
+		ContextMoqParam context.Context
+		Command         cqrs.Command
+	}{
+		ContextMoqParam: contextMoqParam,
+		Command:         command,
+	}
+	mock.lockHandle.Lock()
+	mock.calls.Handle = append(mock.calls.Handle, callInfo)
+	mock.lockHandle.Unlock()
+	if mock.HandleFunc == nil {
+		var (
+			eventsOut []cqrs.Event
+			errOut    error
+		)
+		return eventsOut, errOut
+	}
+	return mock.HandleFunc(contextMoqParam, command)
+}
+
+// HandleCalls gets all the calls that were made to Handle.
+// Check the length with:
+//
+//	len(mockedCommandHandler.HandleCalls())
+func (mock *CommandHandlerMock) HandleCalls() []struct {
+	ContextMoqParam context.Context
+	Command         cqrs.Command
+} {
+	var calls []struct {
+		ContextMoqParam context.Context
+		Command         cqrs.Command
+	}
+	mock.lockHandle.RLock()
+	calls = mock.calls.Handle
+	mock.lockHandle.RUnlock()
+	return calls
+}
+
+// Ensure, that QueryHandlerMock does implement cqrs.QueryHandler.
+// If this is not the case, regenerate this file with moq.
+var _ cqrs.QueryHandler = &QueryHandlerMock{}
+
+// QueryHandlerMock is a mock implementation of cqrs.QueryHandler.
+//
+//	func TestSomethingThatUsesQueryHandler(t *testing.T) {
+//
+//		// make and configure a mocked cqrs.QueryHandler
+//		mockedQueryHandler := &QueryHandlerMock{
+//			HandleFunc: func(contextMoqParam context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
+//				panic("mock out the Handle method")
+//			},
+//		}
+//
+//		// use mockedQueryHandler in code that requires cqrs.QueryHandler
+//		// and then make assertions.
+//
+//	}
+type QueryHandlerMock struct {
+	// HandleFunc mocks the Handle method.
+	HandleFunc func(contextMoqParam context.Context, query cqrs.Query) (cqrs.QueryResult, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// Handle holds details about calls to the Handle method.
+		Handle []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
+			// Query is the query argument value.
+			Query cqrs.Query
+		}
+	}
+	lockHandle sync.RWMutex
+}
+
+// Handle calls HandleFunc.
+func (mock *QueryHandlerMock) Handle(contextMoqParam context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
+	callInfo := struct {
+		ContextMoqParam context.Context
+		Query           cqrs.Query
+	}{
+		ContextMoqParam: contextMoqParam,
+		Query:           query,
+	}
+	mock.lockHandle.Lock()
+	mock.calls.Handle = append(mock.calls.Handle, callInfo)
+	mock.lockHandle.Unlock()
+	if mock.HandleFunc == nil {
+		var (
+			queryResultOut cqrs.QueryResult
+			errOut         error
+		)
+		return queryResultOut, errOut
+	}
+	return mock.HandleFunc(contextMoqParam, query)
+}
+
+// HandleCalls gets all the calls that were made to Handle.
+// Check the length with:
+//
+//	len(mockedQueryHandler.HandleCalls())
+func (mock *QueryHandlerMock) HandleCalls() []struct {
+	ContextMoqParam context.Context
+	Query           cqrs.Query
+} {
+	var calls []struct {
+		ContextMoqParam context.Context
+		Query           cqrs.Query
+	}
+	mock.lockHandle.RLock()
+	calls = mock.calls.Handle
+	mock.lockHandle.RUnlock()
+	return calls
 }

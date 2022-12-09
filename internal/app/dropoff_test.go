@@ -11,13 +11,14 @@ import (
 	"theskyinflames/car-sharing/internal/helpers"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 func TestDropOff(t *testing.T) {
 	randomErr := errors.New("")
 	testCases := []struct {
 		name            string
-		cmd             app.Command
+		cmd             cqrs.Command
 		gr              *GroupsRepositoryMock
 		cr              *CarsRepositoryMock
 		expectedErrFunc func(*testing.T, error)
@@ -176,7 +177,7 @@ func TestDropOff(t *testing.T) {
 
 	for _, tc := range testCases {
 		ch := app.NewDropOff(tc.gr, tc.cr)
-		err := ch.Handle(context.Background(), tc.cmd)
+		_, err := ch.Handle(context.Background(), tc.cmd)
 		require.Equal(t, tc.expectedErrFunc == nil, err == nil)
 		if err != nil {
 			tc.expectedErrFunc(t, err)

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // DropOffCmd is a command
@@ -31,27 +33,27 @@ func NewDropOff(gr GroupsRepository, evr CarsRepository) DropOff {
 }
 
 // Handle implements CommandHandler interface
-func (ch DropOff) Handle(ctx context.Context, cmd Command) error {
+func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
 	co, ok := cmd.(DropOffCmd)
 	if !ok {
-		return NewInvalidCommandError(DropOffName, cmd.Name())
+		return nil, NewInvalidCommandError(DropOffName, cmd.Name())
 	}
 
 	g, err := ch.gr.FindByID(ctx, co.GroupID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	wg, err := ch.gr.FindGroupsWithoutCar(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var ev *domain.Car
 	if g.Ev() != nil {
 		gev, err := ch.evr.FindByID(ctx, g.Ev().ID())
 		if err != nil {
-			return err
+			return nil, err
 		}
 		ev = &gev
 	}
@@ -60,20 +62,20 @@ func (ch DropOff) Handle(ctx context.Context, cmd Command) error {
 	fleet := domain.NewFleet(nil, wg)
 	resultEv, onJourney, err := fleet.DropOff(g, ev)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resultEv != nil {
 		if err := ch.evr.Update(ctx, *resultEv); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	for _, oj := range onJourney {
 		if err := ch.gr.Update(ctx, oj); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return ch.gr.RemoveByID(ctx, g.ID())
+	return nil, ch.gr.RemoveByID(ctx, g.ID())
 }
