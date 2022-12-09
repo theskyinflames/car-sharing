@@ -1,0 +1,22 @@
+{
+	"$id": "locate_rq.json",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Drop off a journey",
+	"description": "Schema definition to drop off a journey",
+	"type": "object",
+	"examples": [
+		{
+			"id": 1
+		}
+	],
+	"properties": {
+		"id": {
+			"type": "integer",
+			"description": "group id",
+			"minimum": 1
+		}
+	},
+	"required": [
+		"id"
+	]
+}
