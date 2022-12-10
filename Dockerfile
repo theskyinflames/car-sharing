@@ -4,7 +4,7 @@ WORKDIR /challenge
 
 COPY . .
 
-RUN go build cmd/main.go
+RUN go build cmd/main.go cmd/run.go
 
 FROM alpine:3.14.0
 WORKDIR /callenge

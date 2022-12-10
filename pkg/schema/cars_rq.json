@@ -1,8 +1,8 @@
 {
-	"$id": "initialize_fleet_rq.json",
+	"$id": "cars_rq.json",
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "Initialize fleet",
-	"description": "Schema definition to Initialize a fleet",
+	"title": "cars",
+	"description": "Schema definition to Initialize a fleet of cars",
 	"type": "array",
 	"examples": [
 		[
@@ -17,10 +17,10 @@
 		  ]
 	],
 	"items": {
-		"$ref": "#/definitions/evs"
+		"$ref": "#/definitions/cars"
 	},
 	"definitions": {
-		"evs": {
+		"cars": {
 			"type": "object",
 			"required": [
 				"id",
@@ -29,12 +29,12 @@
 			"properties": {
 				"id": {
 					"type": "integer",
-					"description": "ev id",
+					"description": "car id",
 					"minimum": 1
 				},
 				"seats": {
 					"type": "integer",
-					"description": "ev seats",
+					"description": "car seats",
 					"enum": [
 						4,
 						5,

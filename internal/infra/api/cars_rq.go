@@ -6,44 +6,44 @@ import "fmt"
 import "reflect"
 import "encoding/json"
 
-type EvsSeats int
+type CarsSeats int
 
-var enumValues_EvsSeats = []interface{}{
+var enumValues_CarsSeats = []interface{}{
 	4,
 	5,
 	6,
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *EvsSeats) UnmarshalJSON(b []byte) error {
+func (j *CarsSeats) UnmarshalJSON(b []byte) error {
 	var v int
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 	var ok bool
-	for _, expected := range enumValues_EvsSeats {
+	for _, expected := range enumValues_CarsSeats {
 		if reflect.DeepEqual(v, expected) {
 			ok = true
 			break
 		}
 	}
 	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_EvsSeats, v)
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_CarsSeats, v)
 	}
-	*j = EvsSeats(v)
+	*j = CarsSeats(v)
 	return nil
 }
 
-type Evs struct {
-	// ev id
+type Cars struct {
+	// Car id
 	Id int `json:"id"`
 
-	// ev seats
-	Seats EvsSeats `json:"seats"`
+	// Car seats
+	Seats CarsSeats `json:"seats"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Evs) UnmarshalJSON(b []byte) error {
+func (j *Cars) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
@@ -54,14 +54,14 @@ func (j *Evs) UnmarshalJSON(b []byte) error {
 	if v, ok := raw["seats"]; !ok || v == nil {
 		return fmt.Errorf("field seats: required")
 	}
-	type Plain Evs
+	type Plain Cars
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Evs(plain)
+	*j = Cars(plain)
 	return nil
 }
 
 // Schema definition to Initialize a fleet
-type InitializeFleetRqJson []Evs
+type InitializeFleetRqJson []Cars
