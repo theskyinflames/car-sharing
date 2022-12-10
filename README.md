@@ -217,9 +217,9 @@ For the next iterations, I'd take a look to:
 
 * Adding persistent storage. A no SQL storage like Redis fits enough if the domain is not more complex. Otherwise, it could be worth adding SQL storage.
 
+## Repo layout
 
-### Repo layout
-
+* accpetance_test - the acceptance test
 * assets - images of this document
 * scripts - an script to compile the Docker container locally, for development purposes
 * cmd - where the *main.go* is
@@ -238,7 +238,7 @@ There are also other files used for development purposes:
   * internal/revive.toml - used as linter
   * Makefile
 
-### How to run it locally
+## How to run it locally
 
 There is a Make file in the root for that. Only do:
 
@@ -250,7 +250,14 @@ There is a Make file in the root for that. Only do:
 
 These commands will build the Docker image, start it listening in the port 80, and logs the HTTP interactions.
 
-### Tooling and libs used
+## Acceptance test
+There is an acceptance test. To execute it do:
+
+```sh
+  make test-acceptance
+```
+
+## Tooling and libs used
 
 To implement the solution I've used:
 
