@@ -11,15 +11,15 @@ import (
 	"os"
 	"testing"
 
+	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/infra/api"
-	"theskyinflames/car-sharing/internal/infra/server"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestAcceptanceTest(t *testing.T) {
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
-	bus := server.BuildBus(log)
+	bus := app.BuildBus(log)
 
 	t.Run(`Given a car-sharing API `, func(t *testing.T) {
 		t.Run(`when cars endpoint is called, then these cars are added`, func(t *testing.T) {

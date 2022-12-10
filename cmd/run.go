@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -9,14 +9,10 @@ import (
 
 	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/infra/api"
-	"theskyinflames/car-sharing/internal/infra/repository"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/rs/cors"
-	"github.com/theskyinflames/cqrs-eda/pkg/bus"
-	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
-	"github.com/theskyinflames/cqrs-eda/pkg/helpers"
 )
 
 // Run Starts the API server
@@ -37,7 +33,7 @@ func Run(ctx context.Context, srvPort string) {
 
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
 
-	bus := BuildBus(log)
+	bus := app.BuildBus(log)
 
 	r.Put("/cars", api.InitializeFleet(bus))
 	r.Post("/journey", api.Journey(bus))
@@ -48,22 +44,4 @@ func Run(ctx context.Context, srvPort string) {
 	if err := http.ListenAndServe(srvPort, r); err != nil {
 		fmt.Printf("something went wrong trying to start the server: %s\n", err.Error())
 	}
-}
-
-// BuildBus returns the command/query bus
-func BuildBus(log cqrs.Logger) bus.Bus {
-	gr := repository.NewGroupsRepository()
-	evr := repository.NewCarRepository()
-
-	initializeFleetCh := cqrs.ChErrMw(log)(app.NewInitializeFleet(&gr, &evr))
-	journeyCh := cqrs.ChErrMw(log)(app.NewJourney(&gr, &evr))
-	dropOffCh := cqrs.ChErrMw(log)(app.NewDropOff(&gr, &evr))
-	localeQh := cqrs.QhErrMw(log)(app.NewLocate(&gr, &evr))
-
-	bus := bus.New()
-	bus.Register(app.InitializeFleetName, helpers.BusChHandler(initializeFleetCh))
-	bus.Register(app.JourneyName, helpers.BusChHandler(journeyCh))
-	bus.Register(app.DropOffName, helpers.BusChHandler(dropOffCh))
-	bus.Register(app.LocateName, helpers.BusQhHandler(localeQh))
-	return bus
 }
