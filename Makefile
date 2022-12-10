@@ -1,9 +1,12 @@
 GOPATH := $(go env GOPATH) 
 
-default: test
+default: test-acceptance
 
 test:
 	go test -v -race -count=1 ./...
+
+test-acceptance:
+	go test -v --race --count=1 ./acceptance_test/...
 
 lint:
 	golangci-lint run
