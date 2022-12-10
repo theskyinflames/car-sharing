@@ -2,7 +2,7 @@ GOPATH := $(go env GOPATH)
 
 default: test-acceptance
 
-test:
+test-unit:
 	go test -v -race -count=1 ./...
 
 test-acceptance:

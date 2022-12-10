@@ -33,12 +33,12 @@ func Run(ctx context.Context, srvPort string) {
 
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
 
-	bus := app.BuildBus(log)
+	commandBus := app.BuildCommandBus(log)
 
-	r.Put("/cars", api.InitializeFleet(bus))
-	r.Post("/journey", api.Journey(bus))
-	r.Post("/dropoff", api.DropOff(bus))
-	r.Post("/locate", api.Locate(bus))
+	r.Put("/cars", api.InitializeFleet(commandBus))
+	r.Post("/journey", api.Journey(commandBus))
+	r.Post("/dropoff", api.DropOff(commandBus))
+	r.Post("/locate", api.Locate(commandBus))
 
 	fmt.Printf("serving at port %s\n", srvPort)
 	if err := http.ListenAndServe(srvPort, r); err != nil {

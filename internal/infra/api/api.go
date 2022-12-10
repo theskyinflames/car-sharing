@@ -154,6 +154,5 @@ func Locate(queryBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write(b); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		w.WriteHeader(http.StatusOK)
 	}
 }

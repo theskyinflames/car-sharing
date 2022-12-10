@@ -19,7 +19,7 @@ import (
 
 func TestAcceptanceTest(t *testing.T) {
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
-	bus := app.BuildBus(log)
+	commandBus := app.BuildCommandBus(log)
 
 	t.Run(`Given a car-sharing API `, func(t *testing.T) {
 		t.Run(`when cars endpoint is called, then these cars are added`, func(t *testing.T) {
@@ -33,7 +33,7 @@ func TestAcceptanceTest(t *testing.T) {
 					Seats: 6,
 				},
 			}
-			do(t, http.HandlerFunc(api.InitializeFleet(bus)), http.MethodPut, "/cars", rq, http.StatusOK, nil, nil)
+			do(t, http.HandlerFunc(api.InitializeFleet(commandBus)), http.MethodPut, "/cars", rq, http.StatusOK, nil, nil)
 		})
 
 		t.Run(`when a journey with a group of 3 people is added, then it's got on the six-seat car`, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestAcceptanceTest(t *testing.T) {
 				Id:     1,
 				People: 3,
 			}
-			do(t, http.HandlerFunc(api.Journey(bus)), http.MethodPut, "/journey", rq, http.StatusOK, nil, nil)
+			do(t, http.HandlerFunc(api.Journey(commandBus)), http.MethodPut, "/journey", rq, http.StatusOK, nil, nil)
 		})
 
 		t.Run(`when the same journey tried to be added, then a 409 HTTP status is returned`, func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestAcceptanceTest(t *testing.T) {
 				Id:     1,
 				People: 3,
 			}
-			do(t, http.HandlerFunc(api.Journey(bus)), http.MethodPut, "/journey", rq, http.StatusConflict, nil, nil)
+			do(t, http.HandlerFunc(api.Journey(commandBus)), http.MethodPut, "/journey", rq, http.StatusConflict, nil, nil)
 		})
 
 		t.Run(`when a journey with a second group of 4 people is added, then it's got on the four-seat car`, func(t *testing.T) {
@@ -57,7 +57,7 @@ func TestAcceptanceTest(t *testing.T) {
 				Id:     2,
 				People: 4,
 			}
-			do(t, http.HandlerFunc(api.Journey(bus)), http.MethodPut, "/journey", rq, http.StatusOK, nil, nil)
+			do(t, http.HandlerFunc(api.Journey(commandBus)), http.MethodPut, "/journey", rq, http.StatusOK, nil, nil)
 		})
 
 		t.Run(`when the group with Id=1 and 3 people is located, then car with Id=2 and six seats is returned`, func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestAcceptanceTest(t *testing.T) {
 				require.NoError(t, rs.UnmarshalJSON(b))
 				return rs
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rq, http.StatusOK, expectedRs, unmarshalRsFunc)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rq, http.StatusOK, expectedRs, unmarshalRsFunc)
 		})
 
 		t.Run(`when the group of 4 people is located, then car with Id=1 and for seats is returned`, func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestAcceptanceTest(t *testing.T) {
 				require.NoError(t, rs.UnmarshalJSON(b))
 				return rs
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rq, http.StatusOK, expectedRs, unmarshalRsFunc)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rq, http.StatusOK, expectedRs, unmarshalRsFunc)
 		})
 
 		t.Run(`when two more groups are added, then the stay waiting for a car`, func(t *testing.T) {
@@ -97,30 +97,30 @@ func TestAcceptanceTest(t *testing.T) {
 				Id:     3,
 				People: 4,
 			}
-			do(t, http.HandlerFunc(api.Journey(bus)), http.MethodPut, "/journey", rqJourney, http.StatusOK, nil, nil)
+			do(t, http.HandlerFunc(api.Journey(commandBus)), http.MethodPut, "/journey", rqJourney, http.StatusOK, nil, nil)
 
 			rqJourney = api.JourneyRqJson{
 				Id:     4,
 				People: 4,
 			}
-			do(t, http.HandlerFunc(api.Journey(bus)), http.MethodPut, "/journey", rqJourney, http.StatusOK, nil, nil)
+			do(t, http.HandlerFunc(api.Journey(commandBus)), http.MethodPut, "/journey", rqJourney, http.StatusOK, nil, nil)
 
 			rqLocate := api.LocateRqJson{
 				Id: 3,
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
 
 			rqLocate = api.LocateRqJson{
 				Id: 4,
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
 		})
 
 		t.Run(`when the group with Id=1 is dropped off, then the first waiting group (Id=3) is got on and the group with Id=4 keeps waiting`, func(t *testing.T) {
 			rqDropOff := api.DropOffRqJson{
 				Id: 1,
 			}
-			do(t, http.HandlerFunc(api.DropOff(bus)), http.MethodPost, "/dropoff", rqDropOff, http.StatusNoContent, nil, nil)
+			do(t, http.HandlerFunc(api.DropOff(commandBus)), http.MethodPost, "/dropoff", rqDropOff, http.StatusNoContent, nil, nil)
 
 			rqLocate := api.LocateRqJson{
 				Id: 3,
@@ -134,12 +134,12 @@ func TestAcceptanceTest(t *testing.T) {
 				require.NoError(t, rs.UnmarshalJSON(b))
 				return rs
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rqLocate, http.StatusOK, expectedRs, unmarshalRsFunc)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rqLocate, http.StatusOK, expectedRs, unmarshalRsFunc)
 
 			rqLocate = api.LocateRqJson{
 				Id: 4,
 			}
-			do(t, http.HandlerFunc(api.Locate(bus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
+			do(t, http.HandlerFunc(api.Locate(commandBus)), http.MethodPost, "/locate", rqLocate, http.StatusNoContent, nil, nil)
 		})
 	})
 }

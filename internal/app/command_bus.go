@@ -8,8 +8,8 @@ import (
 	"github.com/theskyinflames/cqrs-eda/pkg/helpers"
 )
 
-// BuildBus returns the command/query bus
-func BuildBus(log cqrs.Logger) bus.Bus {
+// BuildCommandBus returns the command/query bus
+func BuildCommandBus(log cqrs.Logger) bus.Bus {
 	gr := repository.NewGroupsRepository()
 	evr := repository.NewCarRepository()
 
