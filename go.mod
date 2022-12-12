@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-chi/chi v1.5.4
+	github.com/robfig/bind v0.0.0-20140816170350-2e935d371779
 	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.8.1
 	github.com/theskyinflames/cqrs-eda v0.0.0-20221209184124-96b49d547390

@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+
+	"theskyinflames/car-sharing/cmd/service"
 )
 
 const srvPort = ":80"
 
 func main() {
-	Run(context.Background(), srvPort)
+	service.Run(context.Background(), srvPort)
 }
