@@ -29,21 +29,18 @@ func InitializeFleet(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		var cars []domain.Car
+		var cars []app.Car
 		for _, car := range rq {
 			if car.Id < 1 { // this restriction is in the JSON schema, but the Go JSON schema compiler does not implements it yet.
 				http.Error(w, "minimum id value is 1", http.StatusBadRequest)
 				return
 			}
-			capacity, err := domain.ParseCarCapacityFromInt(int(car.Seats))
+			seats, err := domain.ParseCarCapacityFromInt(int(car.Seats))
 			if err != nil {
-				if errors.Is(err, domain.ErrCapacityNotSupported) {
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusBadRequest)
+				return
 			}
-			cars = append(cars, domain.NewCar(car.Id, capacity))
+			cars = append(cars, app.Car{ID: car.Id, Seats: seats})
 		}
 
 		cmd := app.InitializeFleetCmd{Cars: cars}
