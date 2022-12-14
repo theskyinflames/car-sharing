@@ -101,43 +101,26 @@ Responses:
 
 ### POST /dropoff
 
-A group of people requests to be dropped off whether they traveled or not.
+A group of people requests to be dropped off. Whether they traveled or not.
 
-**Body** _required_ The ID of the group
+**Body** _required_ A form with the group ID, such that `ID=X`
 
-**Content Type** `application/json`
-
-Sample:
-
-```json
-{
-  "id": 1
-}
-```
+**Content Type** `application/x-www-form-urlencoded`
 
 Responses:
 
 * **200 OK** or **204 No Content** When the group is unregistered correctly.
-* **404 Not Found** When the group cannot be found.
-* **400 Bad Request** When there is a failure in the request format or the
-  payload can't be unmarshalled.
+* **404 Not Found** When the group is not to be found.
+* **400 Bad Request** When there is a failure in the request format or the payload can't be unmarshalled.
 
 ### POST /locate
 
-Given a group ID such as `ID=X`, return the car the group is traveling
+Given a group ID such that `ID=X`, return the car the group is traveling
 with, or no car if they are still waiting to be served.
 
-**Body** _required_ The ID of the group
+**Body** _required_ A url encoded form with the group ID such that `ID=X`
 
-**Content Type** `application/json`
-
-Sample:
-
-```json
-{
-  "id": 1
-}
-```
+**Content Type** `application/x-www-form-urlencoded`
 
 **Accept** `application/json`
 
@@ -145,9 +128,8 @@ Responses:
 
 * **200 OK** With the car as the payload when the group is assigned to a car.
 * **204 No Content** When the group is waiting to be assigned to a car.
-* **404 Not Found** When the group cannot be found.
-* **400 Bad Request** When there is a failure in the request format or the
-  payload can't be unmarshalled.
+* **404 Not Found** When the group is not to be found.
+* **400 Bad Request** When there is a failure in the request format or the payload can't be unmarshalled.
 
 ### Applied approach
 
