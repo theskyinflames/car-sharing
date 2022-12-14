@@ -70,22 +70,22 @@ func Journey(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		g, err := domain.NewGroup(rq.Id, int(rq.People))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
 		cmd := app.JourneyCmd{
-			Group: g,
+			ID:     rq.Id,
+			People: int(rq.People),
 		}
 		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
-			if errors.Is(err, repository.ErrPKConflict) {
+			switch {
+			case errors.Is(err, repository.ErrPKConflict):
 				w.WriteHeader(http.StatusBadRequest)
 				return
+			case errors.Is(err, domain.ErrWrongSize):
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
-			w.WriteHeader(http.StatusInternalServerError)
-			return
 		}
 
 		w.WriteHeader(http.StatusOK)

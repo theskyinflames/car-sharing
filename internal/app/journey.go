@@ -10,7 +10,8 @@ import (
 
 // JourneyCmd is a command
 type JourneyCmd struct {
-	Group domain.Group
+	ID     int
+	People int
 }
 
 // JourneyName is self-described
@@ -44,7 +45,12 @@ func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, e
 		return nil, err
 	}
 
-	if err := ch.gr.Add(ctx, co.Group); err != nil {
+	g, err := domain.NewGroup(co.ID, co.People)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ch.gr.Add(ctx, g); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +60,7 @@ func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, e
 	}
 
 	fleet := domain.NewFleet(evs, wg)
-	g, ev := fleet.Journey(co.Group) // try to get the group on a ev
+	g, ev := fleet.Journey(g) // try to get the group on a ev
 
 	if !g.IsOnJourney() { // if the g is not in journey, there is not ev to be updated. Otherwise, its list of groups is updated
 		return nil, nil

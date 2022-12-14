@@ -46,7 +46,10 @@ func TestJourney(t *testing.T) {
 		},
 		{
 			name: `Given an gr repository that returns an error on Add method, when it's called, then an error is returned`,
-			cmd:  app.JourneyCmd{},
+			cmd: app.JourneyCmd{
+				ID:     1,
+				People: 2,
+			},
 			gr: &GroupsRepositoryMock{
 				AddFunc: func(_ context.Context, _ domain.Group) error {
 					return randomErr
@@ -58,8 +61,11 @@ func TestJourney(t *testing.T) {
 		},
 		{
 			name: `Given an evr repository that returns an error on FindAll method, when it's called, then an error is returned`,
-			cmd:  app.JourneyCmd{},
-			gr:   &GroupsRepositoryMock{},
+			cmd: app.JourneyCmd{
+				ID:     1,
+				People: 2,
+			},
+			gr: &GroupsRepositoryMock{},
 			evr: &CarsRepositoryMock{
 				FindAllFunc: func(_ context.Context) ([]domain.Car, error) {
 					return nil, randomErr
@@ -73,7 +79,8 @@ func TestJourney(t *testing.T) {
 			name: `Given group that gets on a ev and a groups repository that returns an error on Update method, 
 				when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				Group: fixtures.Group{People: helpers.IntPtr(1)}.Build(),
+				ID:     2,
+				People: 1,
 			},
 			gr: &GroupsRepositoryMock{},
 			evr: &CarsRepositoryMock{
@@ -98,7 +105,8 @@ func TestJourney(t *testing.T) {
 			name: `Given group that gets on a ev and a evs repository that returns an error on Update method, 
 				when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				Group: fixtures.Group{People: helpers.IntPtr(1)}.Build(),
+				ID:     3,
+				People: 1,
 			},
 			gr: &GroupsRepositoryMock{
 				UpdateFunc: func(_ context.Context, _ domain.Group) error {
@@ -123,7 +131,8 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given group that gets on a ev, when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				Group: fixtures.Group{People: helpers.IntPtr(1)}.Build(),
+				ID:     4,
+				People: 1,
 			},
 			gr: &GroupsRepositoryMock{},
 			evr: &CarsRepositoryMock{
@@ -142,7 +151,8 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given group that does not get on a ev, when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				Group: fixtures.Group{People: helpers.IntPtr(1)}.Build(),
+				ID:     1,
+				People: 1,
 			},
 			gr:                &GroupsRepositoryMock{},
 			evr:               &CarsRepositoryMock{},
@@ -161,7 +171,8 @@ func TestJourney(t *testing.T) {
 
 		require.Len(t, tc.gr.FindGroupsWithoutCarCalls(), 1)
 		require.Len(t, tc.gr.AddCalls(), 1)
-		require.Equal(t, tc.gr.AddCalls()[0].G, tc.cmd.(app.JourneyCmd).Group)
+		require.Equal(t, tc.gr.AddCalls()[0].G.ID(), tc.cmd.(app.JourneyCmd).ID)
+		require.Equal(t, tc.gr.AddCalls()[0].G.People(), tc.cmd.(app.JourneyCmd).People)
 		require.Len(t, tc.evr.FindAllCalls(), 1)
 		if tc.expectedOnJourney {
 			require.Len(t, tc.gr.UpdateCalls(), 1)
