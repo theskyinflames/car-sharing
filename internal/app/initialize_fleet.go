@@ -5,12 +5,13 @@ import (
 
 	"theskyinflames/car-sharing/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // Car is a DTO
 type Car struct {
-	ID    int
+	ID    uuid.UUID
 	Seats domain.CarCapacity
 }
 

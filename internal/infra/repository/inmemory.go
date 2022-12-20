@@ -9,18 +9,20 @@ import (
 	"sync"
 
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // CarRepository is a repository
 type CarRepository struct {
-	cars map[int]domain.Car
+	cars map[uuid.UUID]domain.Car
 
 	mux *sync.RWMutex
 }
 
 // NewCarRepository is a constructor
 func NewCarRepository() CarRepository {
-	return CarRepository{cars: make(map[int]domain.Car), mux: &sync.RWMutex{}}
+	return CarRepository{cars: make(map[uuid.UUID]domain.Car), mux: &sync.RWMutex{}}
 }
 
 // RemoveAll is a constructor
@@ -28,7 +30,7 @@ func (cr *CarRepository) RemoveAll(_ context.Context) error {
 	cr.mux.Lock()
 	defer cr.mux.Unlock()
 
-	cr.cars = make(map[int]domain.Car)
+	cr.cars = make(map[uuid.UUID]domain.Car)
 	return nil
 }
 
@@ -78,7 +80,7 @@ func (cr CarRepository) FindAll(_ context.Context) ([]domain.Car, error) {
 }
 
 // FindByID is a finder
-func (cr CarRepository) FindByID(_ context.Context, id int) (domain.Car, error) {
+func (cr CarRepository) FindByID(_ context.Context, id uuid.UUID) (domain.Car, error) {
 	cr.mux.RLock()
 	defer cr.mux.RUnlock()
 
@@ -92,14 +94,14 @@ func (cr CarRepository) FindByID(_ context.Context, id int) (domain.Car, error) 
 
 // GroupsRepository is a repository
 type GroupsRepository struct {
-	groups map[int]domain.Group
+	groups map[uuid.UUID]domain.Group
 
 	mux *sync.RWMutex
 }
 
 // NewGroupsRepository is a constructor
 func NewGroupsRepository() GroupsRepository {
-	return GroupsRepository{groups: make(map[int]domain.Group), mux: &sync.RWMutex{}}
+	return GroupsRepository{groups: make(map[uuid.UUID]domain.Group), mux: &sync.RWMutex{}}
 }
 
 // RemoveAll is self-described
@@ -107,7 +109,7 @@ func (gr *GroupsRepository) RemoveAll(_ context.Context) error {
 	gr.mux.Lock()
 	defer gr.mux.Unlock()
 
-	gr.groups = make(map[int]domain.Group)
+	gr.groups = make(map[uuid.UUID]domain.Group)
 	return nil
 }
 
@@ -118,7 +120,7 @@ func (gr GroupsRepository) FindGroupsWithoutCar(_ context.Context) ([]domain.Gro
 
 	var withoutEv []domain.Group
 	for _, g := range gr.groups {
-		if g.Ev() == nil {
+		if g.Car() == nil {
 			withoutEv = append(withoutEv, g)
 		}
 	}
@@ -151,7 +153,7 @@ func (gr GroupsRepository) Add(_ context.Context, g domain.Group) error {
 }
 
 // FindByID is a finder
-func (gr GroupsRepository) FindByID(_ context.Context, id int) (domain.Group, error) {
+func (gr GroupsRepository) FindByID(_ context.Context, id uuid.UUID) (domain.Group, error) {
 	gr.mux.RLock()
 	defer gr.mux.RUnlock()
 
@@ -164,7 +166,7 @@ func (gr GroupsRepository) FindByID(_ context.Context, id int) (domain.Group, er
 }
 
 // RemoveByID is self-described
-func (gr GroupsRepository) RemoveByID(_ context.Context, id int) error {
+func (gr GroupsRepository) RemoveByID(_ context.Context, id uuid.UUID) error {
 	gr.mux.Lock()
 	defer gr.mux.Unlock()
 

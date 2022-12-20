@@ -13,7 +13,7 @@ lint:
 	revive -config ./revive.toml
 	go mod tidy -v && git --no-pager diff --quiet go.mod go.sum
 
-tools: tool-golangci-lint tool-fumpt tool-moq
+tools: tool-golangci-lint tool-fumpt tool-moq gojsonschema
 
 tool-golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -c bash -s -- -b ${GOPATH}/bin v1.50.1
@@ -26,6 +26,9 @@ tool-fumpt:
 
 tool-moq:
 	go install github.com/matryer/moq
+
+tool-gojsonschema:
+	go install github.com/atombender/go-jsonschema/cmd/gojsonschema@latest
 
 run:
 	cd cmd && go run main.go

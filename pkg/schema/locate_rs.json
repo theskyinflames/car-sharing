@@ -12,8 +12,8 @@
 	],
 	"properties": {
 		"id": {
-			"type": "integer",
-			"description": "ev id",
+			"type": "string",
+			"description": "car uuid",
 			"minimum": 1
 		},
 		"seats": {

@@ -40,7 +40,7 @@ func (j *JourneyRqJsonPeople) UnmarshalJSON(b []byte) error {
 // Schema definition to add a group for a journey
 type JourneyRqJson struct {
 	// group id
-	Id int `json:"id"`
+	Id string `json:"id"`
 
 	// group size. Allowed from 1 to 6
 	People JourneyRqJsonPeople `json:"people"`

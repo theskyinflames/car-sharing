@@ -5,12 +5,13 @@ import (
 
 	"theskyinflames/car-sharing/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // JourneyCmd is a command
 type JourneyCmd struct {
-	ID     int
+	ID     uuid.UUID
 	People int
 }
 

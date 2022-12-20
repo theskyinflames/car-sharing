@@ -2,6 +2,8 @@ package domain
 
 import (
 	"errors"
+
+	"github.com/google/uuid"
 )
 
 // CarCapacity is the number of seats that en EV has
@@ -37,22 +39,26 @@ func ParseCarCapacityFromInt(c int) (CarCapacity, error) {
 }
 
 // Journeys is the set of groups that are on journey in the Ev
-type Journeys map[int]Group
+type Journeys map[uuid.UUID]Group
 
 // Car is an entity
 type Car struct {
-	id       int
+	id       uuid.UUID
 	capacity CarCapacity
 	journeys Journeys
 }
 
 // NewCar is a constructor
-func NewCar(id int, capacity CarCapacity) Car {
-	return Car{id: id, capacity: capacity, journeys: make(Journeys)}
+func NewCar(id uuid.UUID, capacity CarCapacity) Car {
+	return Car{
+		id:       id,
+		capacity: capacity,
+		journeys: make(Journeys),
+	}
 }
 
 // ID is a getter
-func (e Car) ID() int {
+func (e Car) ID() uuid.UUID {
 	return e.id
 }
 
@@ -67,7 +73,7 @@ func (e Car) Journeys() Journeys {
 }
 
 // Hydrate hydrates an EV
-func (e *Car) Hydrate(id int, capacity CarCapacity, journeys Journeys) {
+func (e *Car) Hydrate(id uuid.UUID, capacity CarCapacity, journeys Journeys) {
 	e.id = id
 	e.capacity = capacity
 	e.journeys = journeys
@@ -98,7 +104,7 @@ func (e *Car) GetOn(g Group) error {
 var ErrNotFound = errors.New("not found")
 
 // DropOff drops off an on journey group from the EV
-func (e *Car) DropOff(id int) error {
+func (e *Car) DropOff(id uuid.UUID) error {
 	_, ok := e.journeys[id]
 	if !ok {
 		return ErrNotFound

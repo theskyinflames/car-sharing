@@ -5,18 +5,19 @@ import (
 
 	"theskyinflames/car-sharing/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // LocateResponse is a DTO
 type LocateResponse struct {
 	IsInJourney bool
-	Ev          domain.Car
+	Car         domain.Car
 }
 
 // LocateQuery is a query
 type LocateQuery struct {
-	GroupID int
+	GroupID uuid.UUID
 }
 
 // LocateName is sefl-described
@@ -54,13 +55,13 @@ func (qh Locate) Handle(ctx context.Context, query cqrs.Query) (cqrs.QueryResult
 		return LocateResponse{}, nil
 	}
 
-	ev, err := qh.evr.FindByID(ctx, g.Ev().ID())
+	ev, err := qh.evr.FindByID(ctx, g.Car().ID())
 	if err != nil {
 		return nil, err
 	}
 
 	return LocateResponse{
 		IsInJourney: true,
-		Ev:          ev,
+		Car:         ev,
 	}, nil
 }

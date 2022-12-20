@@ -5,6 +5,7 @@ package app_test
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"sync"
 	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/domain"
@@ -23,7 +24,7 @@ var _ app.GroupsRepository = &GroupsRepositoryMock{}
 //			AddFunc: func(ctx context.Context, g domain.Group) error {
 //				panic("mock out the Add method")
 //			},
-//			FindByIDFunc: func(ctx context.Context, ID int) (domain.Group, error) {
+//			FindByIDFunc: func(ctx context.Context, ID uuid.UUID) (domain.Group, error) {
 //				panic("mock out the FindByID method")
 //			},
 //			FindGroupsWithoutCarFunc: func(ctx context.Context) ([]domain.Group, error) {
@@ -32,7 +33,7 @@ var _ app.GroupsRepository = &GroupsRepositoryMock{}
 //			RemoveAllFunc: func(ctx context.Context) error {
 //				panic("mock out the RemoveAll method")
 //			},
-//			RemoveByIDFunc: func(ctx context.Context, ID int) error {
+//			RemoveByIDFunc: func(ctx context.Context, ID uuid.UUID) error {
 //				panic("mock out the RemoveByID method")
 //			},
 //			UpdateFunc: func(ctx context.Context, g domain.Group) error {
@@ -49,7 +50,7 @@ type GroupsRepositoryMock struct {
 	AddFunc func(ctx context.Context, g domain.Group) error
 
 	// FindByIDFunc mocks the FindByID method.
-	FindByIDFunc func(ctx context.Context, ID int) (domain.Group, error)
+	FindByIDFunc func(ctx context.Context, ID uuid.UUID) (domain.Group, error)
 
 	// FindGroupsWithoutCarFunc mocks the FindGroupsWithoutCar method.
 	FindGroupsWithoutCarFunc func(ctx context.Context) ([]domain.Group, error)
@@ -58,7 +59,7 @@ type GroupsRepositoryMock struct {
 	RemoveAllFunc func(ctx context.Context) error
 
 	// RemoveByIDFunc mocks the RemoveByID method.
-	RemoveByIDFunc func(ctx context.Context, ID int) error
+	RemoveByIDFunc func(ctx context.Context, ID uuid.UUID) error
 
 	// UpdateFunc mocks the Update method.
 	UpdateFunc func(ctx context.Context, g domain.Group) error
@@ -77,7 +78,7 @@ type GroupsRepositoryMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// ID is the ID argument value.
-			ID int
+			ID uuid.UUID
 		}
 		// FindGroupsWithoutCar holds details about calls to the FindGroupsWithoutCar method.
 		FindGroupsWithoutCar []struct {
@@ -94,7 +95,7 @@ type GroupsRepositoryMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// ID is the ID argument value.
-			ID int
+			ID uuid.UUID
 		}
 		// Update holds details about calls to the Update method.
 		Update []struct {
@@ -152,10 +153,10 @@ func (mock *GroupsRepositoryMock) AddCalls() []struct {
 }
 
 // FindByID calls FindByIDFunc.
-func (mock *GroupsRepositoryMock) FindByID(ctx context.Context, ID int) (domain.Group, error) {
+func (mock *GroupsRepositoryMock) FindByID(ctx context.Context, ID uuid.UUID) (domain.Group, error) {
 	callInfo := struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}{
 		Ctx: ctx,
 		ID:  ID,
@@ -179,11 +180,11 @@ func (mock *GroupsRepositoryMock) FindByID(ctx context.Context, ID int) (domain.
 //	len(mockedGroupsRepository.FindByIDCalls())
 func (mock *GroupsRepositoryMock) FindByIDCalls() []struct {
 	Ctx context.Context
-	ID  int
+	ID  uuid.UUID
 } {
 	var calls []struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}
 	mock.lockFindByID.RLock()
 	calls = mock.calls.FindByID
@@ -263,10 +264,10 @@ func (mock *GroupsRepositoryMock) RemoveAllCalls() []struct {
 }
 
 // RemoveByID calls RemoveByIDFunc.
-func (mock *GroupsRepositoryMock) RemoveByID(ctx context.Context, ID int) error {
+func (mock *GroupsRepositoryMock) RemoveByID(ctx context.Context, ID uuid.UUID) error {
 	callInfo := struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}{
 		Ctx: ctx,
 		ID:  ID,
@@ -289,11 +290,11 @@ func (mock *GroupsRepositoryMock) RemoveByID(ctx context.Context, ID int) error 
 //	len(mockedGroupsRepository.RemoveByIDCalls())
 func (mock *GroupsRepositoryMock) RemoveByIDCalls() []struct {
 	Ctx context.Context
-	ID  int
+	ID  uuid.UUID
 } {
 	var calls []struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}
 	mock.lockRemoveByID.RLock()
 	calls = mock.calls.RemoveByID
@@ -350,19 +351,19 @@ var _ app.CarsRepository = &CarsRepositoryMock{}
 //
 //		// make and configure a mocked app.CarsRepository
 //		mockedCarsRepository := &CarsRepositoryMock{
-//			AddAllFunc: func(ctx context.Context, evs []domain.Car) error {
+//			AddAllFunc: func(ctx context.Context, cars []domain.Car) error {
 //				panic("mock out the AddAll method")
 //			},
 //			FindAllFunc: func(ctx context.Context) ([]domain.Car, error) {
 //				panic("mock out the FindAll method")
 //			},
-//			FindByIDFunc: func(ctx context.Context, ID int) (domain.Car, error) {
+//			FindByIDFunc: func(ctx context.Context, ID uuid.UUID) (domain.Car, error) {
 //				panic("mock out the FindByID method")
 //			},
 //			RemoveAllFunc: func(ctx context.Context) error {
 //				panic("mock out the RemoveAll method")
 //			},
-//			UpdateFunc: func(ctx context.Context, ev domain.Car) error {
+//			UpdateFunc: func(ctx context.Context, car domain.Car) error {
 //				panic("mock out the Update method")
 //			},
 //		}
@@ -373,19 +374,19 @@ var _ app.CarsRepository = &CarsRepositoryMock{}
 //	}
 type CarsRepositoryMock struct {
 	// AddAllFunc mocks the AddAll method.
-	AddAllFunc func(ctx context.Context, evs []domain.Car) error
+	AddAllFunc func(ctx context.Context, cars []domain.Car) error
 
 	// FindAllFunc mocks the FindAll method.
 	FindAllFunc func(ctx context.Context) ([]domain.Car, error)
 
 	// FindByIDFunc mocks the FindByID method.
-	FindByIDFunc func(ctx context.Context, ID int) (domain.Car, error)
+	FindByIDFunc func(ctx context.Context, ID uuid.UUID) (domain.Car, error)
 
 	// RemoveAllFunc mocks the RemoveAll method.
 	RemoveAllFunc func(ctx context.Context) error
 
 	// UpdateFunc mocks the Update method.
-	UpdateFunc func(ctx context.Context, ev domain.Car) error
+	UpdateFunc func(ctx context.Context, car domain.Car) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -393,8 +394,8 @@ type CarsRepositoryMock struct {
 		AddAll []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Evs is the evs argument value.
-			Evs []domain.Car
+			// Cars is the cars argument value.
+			Cars []domain.Car
 		}
 		// FindAll holds details about calls to the FindAll method.
 		FindAll []struct {
@@ -406,7 +407,7 @@ type CarsRepositoryMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// ID is the ID argument value.
-			ID int
+			ID uuid.UUID
 		}
 		// RemoveAll holds details about calls to the RemoveAll method.
 		RemoveAll []struct {
@@ -417,8 +418,8 @@ type CarsRepositoryMock struct {
 		Update []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Ev is the ev argument value.
-			Ev domain.Car
+			// Car is the car argument value.
+			Car domain.Car
 		}
 	}
 	lockAddAll    sync.RWMutex
@@ -429,13 +430,13 @@ type CarsRepositoryMock struct {
 }
 
 // AddAll calls AddAllFunc.
-func (mock *CarsRepositoryMock) AddAll(ctx context.Context, evs []domain.Car) error {
+func (mock *CarsRepositoryMock) AddAll(ctx context.Context, cars []domain.Car) error {
 	callInfo := struct {
-		Ctx context.Context
-		Evs []domain.Car
+		Ctx  context.Context
+		Cars []domain.Car
 	}{
-		Ctx: ctx,
-		Evs: evs,
+		Ctx:  ctx,
+		Cars: cars,
 	}
 	mock.lockAddAll.Lock()
 	mock.calls.AddAll = append(mock.calls.AddAll, callInfo)
@@ -446,7 +447,7 @@ func (mock *CarsRepositoryMock) AddAll(ctx context.Context, evs []domain.Car) er
 		)
 		return errOut
 	}
-	return mock.AddAllFunc(ctx, evs)
+	return mock.AddAllFunc(ctx, cars)
 }
 
 // AddAllCalls gets all the calls that were made to AddAll.
@@ -454,12 +455,12 @@ func (mock *CarsRepositoryMock) AddAll(ctx context.Context, evs []domain.Car) er
 //
 //	len(mockedCarsRepository.AddAllCalls())
 func (mock *CarsRepositoryMock) AddAllCalls() []struct {
-	Ctx context.Context
-	Evs []domain.Car
+	Ctx  context.Context
+	Cars []domain.Car
 } {
 	var calls []struct {
-		Ctx context.Context
-		Evs []domain.Car
+		Ctx  context.Context
+		Cars []domain.Car
 	}
 	mock.lockAddAll.RLock()
 	calls = mock.calls.AddAll
@@ -504,10 +505,10 @@ func (mock *CarsRepositoryMock) FindAllCalls() []struct {
 }
 
 // FindByID calls FindByIDFunc.
-func (mock *CarsRepositoryMock) FindByID(ctx context.Context, ID int) (domain.Car, error) {
+func (mock *CarsRepositoryMock) FindByID(ctx context.Context, ID uuid.UUID) (domain.Car, error) {
 	callInfo := struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}{
 		Ctx: ctx,
 		ID:  ID,
@@ -531,11 +532,11 @@ func (mock *CarsRepositoryMock) FindByID(ctx context.Context, ID int) (domain.Ca
 //	len(mockedCarsRepository.FindByIDCalls())
 func (mock *CarsRepositoryMock) FindByIDCalls() []struct {
 	Ctx context.Context
-	ID  int
+	ID  uuid.UUID
 } {
 	var calls []struct {
 		Ctx context.Context
-		ID  int
+		ID  uuid.UUID
 	}
 	mock.lockFindByID.RLock()
 	calls = mock.calls.FindByID
@@ -579,13 +580,13 @@ func (mock *CarsRepositoryMock) RemoveAllCalls() []struct {
 }
 
 // Update calls UpdateFunc.
-func (mock *CarsRepositoryMock) Update(ctx context.Context, ev domain.Car) error {
+func (mock *CarsRepositoryMock) Update(ctx context.Context, car domain.Car) error {
 	callInfo := struct {
 		Ctx context.Context
-		Ev  domain.Car
+		Car domain.Car
 	}{
 		Ctx: ctx,
-		Ev:  ev,
+		Car: car,
 	}
 	mock.lockUpdate.Lock()
 	mock.calls.Update = append(mock.calls.Update, callInfo)
@@ -596,7 +597,7 @@ func (mock *CarsRepositoryMock) Update(ctx context.Context, ev domain.Car) error
 		)
 		return errOut
 	}
-	return mock.UpdateFunc(ctx, ev)
+	return mock.UpdateFunc(ctx, car)
 }
 
 // UpdateCalls gets all the calls that were made to Update.
@@ -605,11 +606,11 @@ func (mock *CarsRepositoryMock) Update(ctx context.Context, ev domain.Car) error
 //	len(mockedCarsRepository.UpdateCalls())
 func (mock *CarsRepositoryMock) UpdateCalls() []struct {
 	Ctx context.Context
-	Ev  domain.Car
+	Car domain.Car
 } {
 	var calls []struct {
 		Ctx context.Context
-		Ev  domain.Car
+		Car domain.Car
 	}
 	mock.lockUpdate.RLock()
 	calls = mock.calls.Update

@@ -1,6 +1,10 @@
 package helpers
 
-import "theskyinflames/car-sharing/internal/domain"
+import (
+	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/google/uuid"
+)
 
 // IntPtr is a helper
 func IntPtr(i int) *int {
@@ -20,4 +24,9 @@ func BoolPtr(b bool) *bool {
 // EvPtr is a helper
 func EvPtr(ev domain.Car) *domain.Car {
 	return &ev
+}
+
+// UUIDPtr is a helper
+func UUIDPtr(uuid uuid.UUID) *uuid.UUID {
+	return &uuid
 }

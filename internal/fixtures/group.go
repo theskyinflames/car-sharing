@@ -1,23 +1,21 @@
 package fixtures
 
 import (
-	"math/rand"
-	"time"
-
 	"theskyinflames/car-sharing/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // Group is a fixture
 type Group struct {
-	ID     *int
+	ID     *uuid.UUID
 	People *int
 	Car    *domain.Car
 }
 
 // Build is self-described
 func (g Group) Build() domain.Group {
-	rand.Seed(time.Now().UnixNano())
-	id := rand.Int()
+	id := uuid.New()
 	if g.ID != nil {
 		id = *g.ID
 	}

@@ -10,7 +10,7 @@ import (
 	"theskyinflames/car-sharing/internal/domain"
 	"theskyinflames/car-sharing/internal/infra/repository"
 
-	"github.com/robfig/bind"
+	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/bus"
 )
 
@@ -22,7 +22,7 @@ func InitializeFleet(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		var rq InitializeFleetRqJson
+		var rq CarsRqJson
 		if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
 			log.Println(err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -31,8 +31,9 @@ func InitializeFleet(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Req
 
 		var cars []app.Car
 		for _, car := range rq {
-			if car.Id < 1 { // this restriction is in the JSON schema, but the Go JSON schema compiler does not implements it yet.
-				http.Error(w, "minimum id value is 1", http.StatusBadRequest)
+			carID, err := uuid.Parse(car.Id)
+			if err != nil {
+				http.Error(w, "invalid car uuid", http.StatusBadRequest)
 				return
 			}
 			seats, err := domain.ParseCarCapacityFromInt(int(car.Seats))
@@ -40,7 +41,7 @@ func InitializeFleet(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Req
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			cars = append(cars, app.Car{ID: car.Id, Seats: seats})
+			cars = append(cars, app.Car{ID: carID, Seats: seats})
 		}
 
 		cmd := app.InitializeFleetCmd{Cars: cars}
@@ -65,13 +66,14 @@ func Journey(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if rq.Id < 1 { // this restriction is in the JSON schema, but the Go JSON schema compiler does not implements it yet.
+		gID, err := uuid.Parse(rq.Id)
+		if err != nil { // this restriction is in the JSON schema, but the Go JSON schema compiler does not implements it yet.
 			http.Error(w, "minimum id value is 1", http.StatusBadRequest)
 			return
 		}
 
 		cmd := app.JourneyCmd{
-			ID:     rq.Id,
+			ID:     gID,
 			People: int(rq.People),
 		}
 		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
@@ -92,11 +94,6 @@ func Journey(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DropOffRq is an struct to bind the request body
-type DropOffRq struct {
-	ID uint
-}
-
 // DropOff is the HTTP handler to drop off a group
 func DropOff(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -105,14 +102,20 @@ func DropOff(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var rp DropOffRq
-		if err := bind.Request(r).All(&rp); err != nil {
+		if err := r.ParseForm(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		id := r.FormValue("ID")
+		gID, err := uuid.Parse(id)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		cmd := app.DropOffCmd{
-			GroupID: int(rp.ID),
+			GroupID: gID,
 		}
 
 		if _, err := commandBus.Dispatch(r.Context(), cmd); err != nil {
@@ -128,11 +131,6 @@ func DropOff(commandBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// LocateRq is an struct to bind request body
-type LocateRq struct {
-	ID uint
-}
-
 // Locate is the HTTP handler to locate a group
 func Locate(queryBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -141,14 +139,20 @@ func Locate(queryBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var rq LocateRq
-		if err := bind.Request(r).All(&rq); err != nil {
+		if err := r.ParseForm(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		id := r.FormValue("ID")
+		gID, err := uuid.Parse(id)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		cmd := app.LocateQuery{
-			GroupID: int(rq.ID),
+			GroupID: gID,
 		}
 
 		queryRs, err := queryBus.Dispatch(r.Context(), cmd)
@@ -170,8 +174,8 @@ func Locate(queryBus bus.Bus) func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Accept", "application/json")
 		jsonRs := LocateRsJson{
-			Id:    locateRs.Ev.ID(),
-			Seats: LocateRsJsonSeats(locateRs.Ev.Capacity()),
+			Id:    locateRs.Car.ID().String(),
+			Seats: LocateRsJsonSeats(locateRs.Car.Capacity()),
 		}
 		b, _ := json.Marshal(jsonRs)
 		if _, err := w.Write(b); err != nil {

@@ -5,12 +5,13 @@ import (
 
 	"theskyinflames/car-sharing/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 // DropOffCmd is a command
 type DropOffCmd struct {
-	GroupID int
+	GroupID uuid.UUID
 }
 
 // DropOffName is self-described
@@ -50,8 +51,8 @@ func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, e
 	}
 
 	var ev *domain.Car
-	if g.Ev() != nil {
-		gev, err := ch.evr.FindByID(ctx, g.Ev().ID())
+	if g.Car() != nil {
+		gev, err := ch.evr.FindByID(ctx, g.Car().ID())
 		if err != nil {
 			return nil, err
 		}

@@ -36,8 +36,8 @@ func (j *LocateRsJsonSeats) UnmarshalJSON(b []byte) error {
 
 // Schema definition to Initialize a fleet
 type LocateRsJson struct {
-	// ev id
-	Id int `json:"id"`
+	// car uuid
+	Id string `json:"id"`
 
 	// ev seats
 	Seats LocateRsJsonSeats `json:"seats"`

@@ -28,8 +28,8 @@
 			],
 			"properties": {
 				"id": {
-					"type": "integer",
-					"description": "car id",
+					"type": "string",
+					"description": "car UUID",
 					"minimum": 1
 				},
 				"seats": {

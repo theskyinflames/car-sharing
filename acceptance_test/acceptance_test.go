@@ -15,6 +15,7 @@ import (
 	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/infra/api"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,27 +29,34 @@ func TestAcceptanceTest(t *testing.T) {
 	go service.Run(ctx, srvPort)
 	defer cancel()
 
+	var (
+		carID1 = uuid.New().String()
+		carID2 = uuid.New().String()
+
+		gID1 = uuid.New().String()
+		gID2 = uuid.New().String()
+		gID3 = uuid.New().String()
+		gID4 = uuid.New().String()
+	)
+
 	t.Run(`Given a car-sharing API `, func(t *testing.T) {
 		t.Run(`when cars endpoint is called, then these cars are added`, func(t *testing.T) {
 			rq := []api.Cars{
 				{
-					Id:    1,
+					Id:    carID1,
 					Seats: 4,
 				},
 				{
-					Id:    2,
+					Id:    carID2,
 					Seats: 6,
 				},
 			}
-
-			b, err := json.Marshal(rq)
-			require.NoError(t, err)
 
 			do(t, doCmd{
 				http.HandlerFunc(api.InitializeFleet(commandBus)),
 				http.MethodPut,
 				"/cars",
-				b,
+				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
 				nil,
@@ -58,16 +66,15 @@ func TestAcceptanceTest(t *testing.T) {
 
 		t.Run(`when a journey with a group of 3 people is added, then it's got on the six-seat car`, func(t *testing.T) {
 			rq := api.JourneyRqJson{
-				Id:     1,
+				Id:     gID1,
 				People: 3,
 			}
-			b, err := json.Marshal(rq)
-			require.NoError(t, err)
+
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
 				"/journey",
-				b,
+				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
 				nil,
@@ -77,16 +84,15 @@ func TestAcceptanceTest(t *testing.T) {
 
 		t.Run(`when the same journey tried to be added, then a 409 HTTP status is returned`, func(t *testing.T) {
 			rq := api.JourneyRqJson{
-				Id:     1,
+				Id:     gID1,
 				People: 3,
 			}
-			b, err := json.Marshal(rq)
-			require.NoError(t, err)
+
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
 				"/journey",
-				b,
+				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusBadRequest,
 				nil,
@@ -96,16 +102,15 @@ func TestAcceptanceTest(t *testing.T) {
 
 		t.Run(`when a journey with a second group of 4 people is added, then it's got on the four-seat car`, func(t *testing.T) {
 			rq := api.JourneyRqJson{
-				Id:     2,
+				Id:     gID2,
 				People: 4,
 			}
-			b, err := json.Marshal(rq)
-			require.NoError(t, err)
+
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
 				"/journey",
-				b,
+				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
 				nil,
@@ -113,9 +118,9 @@ func TestAcceptanceTest(t *testing.T) {
 			})
 		})
 
-		t.Run(`when the group with Id=1 and 3 people is located, then car with Id=2 and six seats is returned`, func(t *testing.T) {
+		t.Run(`when the group with id=gID1 and 3 people is located, then car with six seats is returned`, func(t *testing.T) {
 			expectedRs := api.LocateRsJson{
-				Id:    2,
+				Id:    carID2,
 				Seats: 6,
 			}
 			unmarshalRsFunc := func(t *testing.T, b []byte) any {
@@ -127,7 +132,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=1"),
+				buildFormValues(gID1),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
 				expectedRs,
@@ -135,9 +140,9 @@ func TestAcceptanceTest(t *testing.T) {
 			})
 		})
 
-		t.Run(`when the group of 4 people is located, then car with Id=1 and for seats is returned`, func(t *testing.T) {
+		t.Run(`when the group of 4 people is located, then car with four seats is returned`, func(t *testing.T) {
 			expectedRs := api.LocateRsJson{
-				Id:    1,
+				Id:    carID1,
 				Seats: 4,
 			}
 			unmarshalRsFunc := func(t *testing.T, b []byte) any {
@@ -149,7 +154,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=2"),
+				buildFormValues(gID2),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
 				expectedRs,
@@ -159,16 +164,15 @@ func TestAcceptanceTest(t *testing.T) {
 
 		t.Run(`when two more groups are added, then the stay waiting for a car`, func(t *testing.T) {
 			rqJourney := api.JourneyRqJson{
-				Id:     3,
+				Id:     gID3,
 				People: 4,
 			}
-			b, err := json.Marshal(rqJourney)
-			require.NoError(t, err)
+
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
 				"/journey",
-				b,
+				buildJSONRq(t, rqJourney),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
 				nil,
@@ -176,16 +180,15 @@ func TestAcceptanceTest(t *testing.T) {
 			})
 
 			rqJourney = api.JourneyRqJson{
-				Id:     4,
+				Id:     gID4,
 				People: 4,
 			}
-			b, err = json.Marshal(rqJourney)
-			require.NoError(t, err)
+
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
 				"/journey",
-				b,
+				buildJSONRq(t, rqJourney),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
 				nil,
@@ -196,7 +199,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=3"),
+				buildFormValues(gID3),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
 				nil,
@@ -207,7 +210,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=4"),
+				buildFormValues(gID4),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
 				nil,
@@ -215,12 +218,12 @@ func TestAcceptanceTest(t *testing.T) {
 			})
 		})
 
-		t.Run(`when the group with Id=1 is dropped off, then the first waiting group (Id=3) is got on and the group with Id=4 keeps waiting`, func(t *testing.T) {
+		t.Run(`when the group with id=gID1 is dropped off, then the first waiting group (id=gID3) is got on and the group with Id=gID4 keeps waiting`, func(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.DropOff(commandBus)),
 				http.MethodPost,
 				"/dropoff",
-				[]byte("ID=1"),
+				buildFormValues(gID1),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
 				nil,
@@ -228,7 +231,7 @@ func TestAcceptanceTest(t *testing.T) {
 			})
 
 			expectedRs := api.LocateRsJson{
-				Id:    2,
+				Id:    carID2,
 				Seats: 6,
 			}
 			unmarshalRsFunc := func(t *testing.T, b []byte) any {
@@ -240,7 +243,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=3"),
+				buildFormValues(gID3),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
 				expectedRs,
@@ -251,7 +254,7 @@ func TestAcceptanceTest(t *testing.T) {
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
 				"/locate",
-				[]byte("ID=4"),
+				buildFormValues(gID4),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
 				nil,
@@ -266,7 +269,7 @@ type (
 		hnd             http.HandlerFunc
 		method          string
 		path            string
-		rq              []byte
+		rq              *bytes.Buffer
 		rqHeaders       map[string]string
 		statusCode      int
 		rs              any
@@ -276,9 +279,6 @@ type (
 )
 
 func do(t *testing.T, doCmd doCmd) {
-	// start the server
-	// srv := httptest.NewServer(http.HandlerFunc(doCmd.hnd))
-
 	// Create a new HTTP client
 	client := &http.Client{}
 
@@ -288,7 +288,7 @@ func do(t *testing.T, doCmd doCmd) {
 		log.Fatal(err)
 	}
 
-	req, err := http.NewRequest(doCmd.method, apiURL.String(), bytes.NewBuffer(doCmd.rq))
+	req, err := http.NewRequest(doCmd.method, apiURL.String(), doCmd.rq)
 	require.NoError(t, err)
 	for h, v := range doCmd.rqHeaders {
 		req.Header.Add(h, v)
@@ -310,4 +310,16 @@ func do(t *testing.T, doCmd doCmd) {
 		received := doCmd.unmarshalRsFunc(t, body)
 		require.Equal(t, doCmd.rs, received)
 	}
+}
+
+func buildFormValues(gID string) *bytes.Buffer {
+	params := url.Values{}
+	params.Set("ID", gID)
+	return bytes.NewBufferString(params.Encode())
+}
+
+func buildJSONRq(t *testing.T, rq interface{}) *bytes.Buffer {
+	b, err := json.Marshal(rq)
+	require.NoError(t, err)
+	return bytes.NewBuffer(b)
 }

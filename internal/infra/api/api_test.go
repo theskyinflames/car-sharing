@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -16,6 +16,7 @@ import (
 	"theskyinflames/car-sharing/internal/infra/api"
 	"theskyinflames/car-sharing/internal/infra/repository"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/theskyinflames/cqrs-eda/pkg/bus"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
@@ -33,7 +34,7 @@ func (d dispatchableMock) Name() string {
 func TestInitializeFleet(t *testing.T) {
 	testCases := []struct {
 		name           string
-		rq             api.InitializeFleetRqJson
+		rq             api.CarsRqJson
 		headers        map[string]string
 		ch             *CommandHandlerMock
 		expectedStatus int
@@ -42,7 +43,7 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint,
 			when it's called without "Content-type: application/json" header,
 			then a 400 HTTP status is returned`,
-			rq: api.InitializeFleetRqJson{
+			rq: api.CarsRqJson{
 				{Seats: 6},
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -51,7 +52,7 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint,
 			when it's called with a wrong rq without id,
 			then a 400 HTTP status is returned`,
-			rq: api.InitializeFleetRqJson{
+			rq: api.CarsRqJson{
 				{Seats: 5},
 			},
 			headers:        map[string]string{"Content-Type": "application/json"},
@@ -59,10 +60,10 @@ func TestInitializeFleet(t *testing.T) {
 		},
 		{
 			name: `Given an initialize fleet endpoint,
-			when it's called with a wrong rq with an id < 1,
+			when it's called with a wrong rq with a wrong id,
 			then a 400 HTTP status is returned`,
-			rq: api.InitializeFleetRqJson{
-				{Id: -1, Seats: 5},
+			rq: api.CarsRqJson{
+				{Id: "wrongID", Seats: 5},
 			},
 			headers:        map[string]string{"Content-Type": "application/json"},
 			expectedStatus: http.StatusBadRequest,
@@ -71,8 +72,8 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint,
 			when it's called with a wrong rq with a not allowed number of seats,
 			then a 400 HTTP status is returned`,
-			rq: api.InitializeFleetRqJson{
-				{Id: 1, Seats: 3},
+			rq: api.CarsRqJson{
+				{Id: uuid.New().String(), Seats: 3},
 			},
 			headers:        map[string]string{"Content-Type": "application/json"},
 			expectedStatus: http.StatusBadRequest,
@@ -81,8 +82,8 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint with a ch that returns an error, 
 			when it's called ,
 			then a 500 HTTP status is returned`,
-			rq: api.InitializeFleetRqJson{
-				{Id: 1, Seats: 5},
+			rq: api.CarsRqJson{
+				{Id: uuid.New().String(), Seats: 5},
 			},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
@@ -96,7 +97,7 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint,
 			when it's called with a right rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.InitializeFleetRqJson{{Id: 1, Seats: 5}},
+			rq:      api.CarsRqJson{{Id: uuid.New().String(), Seats: 5}},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -109,7 +110,7 @@ func TestInitializeFleet(t *testing.T) {
 			name: `Given an initialize fleet endpoint,
 			when it's called with a empty rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.InitializeFleetRqJson{},
+			rq:      api.CarsRqJson{},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -140,6 +141,7 @@ func TestInitializeFleet(t *testing.T) {
 }
 
 func TestJourney(t *testing.T) {
+	gID := uuid.New().String()
 	testCases := []struct {
 		name           string
 		rq             api.JourneyRqJson
@@ -164,9 +166,9 @@ func TestJourney(t *testing.T) {
 		},
 		{
 			name: `Given an journey endpoint,
-			when it's called with a wrong rq with an id < 1,
+			when it's called with a wrong rq with a wrong id,
 			then a 400 HTTP status is returned`,
-			rq:             api.JourneyRqJson{Id: -1, People: 5},
+			rq:             api.JourneyRqJson{Id: "wrongID", People: 5},
 			headers:        map[string]string{"Content-Type": "application/json"},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -174,7 +176,7 @@ func TestJourney(t *testing.T) {
 			name: `Given an journey endpoint,
 			when it's called with a wrong rq with a not allowed group size,
 			then a 400 HTTP status is returned`,
-			rq:             api.JourneyRqJson{Id: 1, People: 10},
+			rq:             api.JourneyRqJson{Id: gID, People: 10},
 			headers:        map[string]string{"Content-Type": "application/json"},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -182,7 +184,7 @@ func TestJourney(t *testing.T) {
 			name: `Given an journey endpoint with a ch that returns an error, 
 			when it's called ,
 			then a 500 HTTP status is returned`,
-			rq:      api.JourneyRqJson{Id: 1, People: 5},
+			rq:      api.JourneyRqJson{Id: gID, People: 5},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -208,7 +210,7 @@ func TestJourney(t *testing.T) {
 			name: `Given an journey endpoint,
 			when it's called with a right rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.JourneyRqJson{Id: 1, People: 5},
+			rq:      api.JourneyRqJson{Id: gID, People: 5},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -239,9 +241,9 @@ func TestJourney(t *testing.T) {
 }
 
 func TestDropOff(t *testing.T) {
+	gID := uuid.New().String()
 	testCases := []struct {
 		name           string
-		rq             api.DropOffRq
 		headers        map[string]string
 		ch             *CommandHandlerMock
 		expectedStatus int
@@ -250,14 +252,12 @@ func TestDropOff(t *testing.T) {
 			name: `Given a journey endpoint,
 			when it's called without "Content-type: application/x-www-form-urlencoded" header,
 			then a 400 HTTP status is returned`,
-			rq:             api.DropOffRq{},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: `Given a drop off endpoint with a ch that returns an error other than not found, 
 			when it's called ,
 			then a 500 HTTP status is returned`,
-			rq:      api.DropOffRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -270,7 +270,6 @@ func TestDropOff(t *testing.T) {
 			name: `Given a drop off endpoint with a ch that returns an not found error, 
 			when it's called ,
 			then a 404 HTTP status is returned`,
-			rq:      api.DropOffRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -283,7 +282,6 @@ func TestDropOff(t *testing.T) {
 			name: `Given a drop off endpoint,
 			when it's called with a right rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.DropOffRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
 				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
@@ -295,16 +293,14 @@ func TestDropOff(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		log.Printf("tc: %s\n", tc.name)
-		s, err := json.Marshal(tc.rq)
-		require.NoError(t, err)
-		reqBody := strings.NewReader(string(s))
+		params := url.Values{}
+		params.Set("ID", gID)
 
 		bus := bus.New()
 		bus.Register(app.DropOffName, helpers.BusChHandler(tc.ch))
 
 		hnd := api.DropOff(bus)
-		r := httptest.NewRequest("", "/dropoff", reqBody)
+		r := httptest.NewRequest(http.MethodPost, "/dropoff", bytes.NewBufferString(params.Encode()))
 		for h, v := range tc.headers {
 			r.Header.Add(h, v)
 		}
@@ -315,10 +311,10 @@ func TestDropOff(t *testing.T) {
 }
 
 func TestLocale(t *testing.T) {
-	ev := fixtures.Car{}.Build()
+	gID := uuid.New().String()
+	car := fixtures.Car{}.Build()
 	testCases := []struct {
 		name           string
-		rq             api.LocateRq
 		headers        map[string]string
 		expectedRs     *api.LocateRsJson
 		qh             *QueryHandlerMock
@@ -328,14 +324,12 @@ func TestLocale(t *testing.T) {
 			name: `Given a locale endpoint,
 			when it's called without "Content-type: application/x-www-form-urlencoded" header,
 			then a 400 HTTP status is returned`,
-			rq:             api.LocateRq{},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: `Given a locale endpoint with a qh that returns an error other than not found,
 			when it's called ,
 			then a 500 HTTP status is returned`,
-			rq:      api.LocateRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			qh: &QueryHandlerMock{
 				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
@@ -348,7 +342,6 @@ func TestLocale(t *testing.T) {
 			name: `Given locale endpoint with a ch that returns an not found error,
 			when it's called ,
 			then a 404 HTTP status is returned`,
-			rq:      api.LocateRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			qh: &QueryHandlerMock{
 				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
@@ -361,7 +354,6 @@ func TestLocale(t *testing.T) {
 			name: `Given locale endpoint and a waiting group,
 			when it's called with a right rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.LocateRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			qh: &QueryHandlerMock{
 				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
@@ -374,34 +366,32 @@ func TestLocale(t *testing.T) {
 			name: `Given locale endpoint and an journey group,
 			when it's called with a right rq,
 			then a 200 HTTP status is returned`,
-			rq:      api.LocateRq{ID: 1},
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			qh: &QueryHandlerMock{
 				HandleFunc: func(ctx context.Context, query cqrs.Query) (cqrs.QueryResult, error) {
 					return app.LocateResponse{
 						IsInJourney: true,
-						Ev:          ev,
+						Car:         car,
 					}, nil
 				},
 			},
 			expectedRs: &api.LocateRsJson{
-				Id:    ev.ID(),
-				Seats: api.LocateRsJsonSeats(ev.Capacity()),
+				Id:    car.ID().String(),
+				Seats: api.LocateRsJsonSeats(car.Capacity()),
 			},
 			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range testCases {
-		s, err := json.Marshal(tc.rq)
-		require.NoError(t, err)
-		reqBody := strings.NewReader(string(s))
+		params := url.Values{}
+		params.Set("ID", gID)
 
 		bus := bus.New()
 		bus.Register(app.LocateName, helpers.BusQhHandler(tc.qh))
 
 		hnd := api.Locate(bus)
-		r := httptest.NewRequest("", "/locale", reqBody)
+		r := httptest.NewRequest(http.MethodPost, "/locale", bytes.NewBufferString(params.Encode()))
 		for h, v := range tc.headers {
 			r.Header.Add(h, v)
 		}

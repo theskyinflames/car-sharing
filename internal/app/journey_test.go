@@ -10,18 +10,26 @@ import (
 	"theskyinflames/car-sharing/internal/fixtures"
 	"theskyinflames/car-sharing/internal/helpers"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
 
 func TestJourney(t *testing.T) {
-	randomErr := errors.New("")
+	var (
+		randomErr = errors.New("")
+
+		jID1 = uuid.New()
+		jID2 = uuid.New()
+		jID3 = uuid.New()
+		jID4 = uuid.New()
+	)
 
 	testCases := []struct {
 		name              string
 		cmd               cqrs.Command
 		gr                *GroupsRepositoryMock
-		evr               *CarsRepositoryMock
+		cr                *CarsRepositoryMock
 		expectedOnJourney bool
 		expectedErrFunc   func(*testing.T, error)
 	}{
@@ -47,7 +55,7 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given an gr repository that returns an error on Add method, when it's called, then an error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     1,
+				ID:     jID1,
 				People: 2,
 			},
 			gr: &GroupsRepositoryMock{
@@ -62,11 +70,11 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given an evr repository that returns an error on FindAll method, when it's called, then an error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     1,
+				ID:     jID1,
 				People: 2,
 			},
 			gr: &GroupsRepositoryMock{},
-			evr: &CarsRepositoryMock{
+			cr: &CarsRepositoryMock{
 				FindAllFunc: func(_ context.Context) ([]domain.Car, error) {
 					return nil, randomErr
 				},
@@ -79,15 +87,15 @@ func TestJourney(t *testing.T) {
 			name: `Given group that gets on a ev and a groups repository that returns an error on Update method, 
 				when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     2,
+				ID:     jID2,
 				People: 1,
 			},
 			gr: &GroupsRepositoryMock{},
-			evr: &CarsRepositoryMock{
+			cr: &CarsRepositoryMock{
 				FindAllFunc: func(_ context.Context) ([]domain.Car, error) {
 					return []domain.Car{
 						fixtures.Car{
-							ID:       helpers.IntPtr(1),
+							ID:       helpers.UUIDPtr(uuid.New()),
 							Capacity: helpers.CarCapacityPtr(domain.CarCapacity6),
 							Journeys: domain.Journeys{},
 						}.Build(),
@@ -105,7 +113,7 @@ func TestJourney(t *testing.T) {
 			name: `Given group that gets on a ev and a evs repository that returns an error on Update method, 
 				when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     3,
+				ID:     jID3,
 				People: 1,
 			},
 			gr: &GroupsRepositoryMock{
@@ -113,11 +121,11 @@ func TestJourney(t *testing.T) {
 					return randomErr
 				},
 			},
-			evr: &CarsRepositoryMock{
+			cr: &CarsRepositoryMock{
 				FindAllFunc: func(_ context.Context) ([]domain.Car, error) {
 					return []domain.Car{
 						fixtures.Car{
-							ID:       helpers.IntPtr(1),
+							ID:       helpers.UUIDPtr(uuid.New()),
 							Capacity: helpers.CarCapacityPtr(domain.CarCapacity6),
 							Journeys: domain.Journeys{},
 						}.Build(),
@@ -131,15 +139,15 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given group that gets on a ev, when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     4,
+				ID:     jID4,
 				People: 1,
 			},
 			gr: &GroupsRepositoryMock{},
-			evr: &CarsRepositoryMock{
+			cr: &CarsRepositoryMock{
 				FindAllFunc: func(_ context.Context) ([]domain.Car, error) {
 					return []domain.Car{
 						fixtures.Car{
-							ID:       helpers.IntPtr(1),
+							ID:       helpers.UUIDPtr(uuid.New()),
 							Capacity: helpers.CarCapacityPtr(domain.CarCapacity6),
 							Journeys: domain.Journeys{},
 						}.Build(),
@@ -151,17 +159,17 @@ func TestJourney(t *testing.T) {
 		{
 			name: `Given group that does not get on a ev, when it's called, then no error is returned`,
 			cmd: app.JourneyCmd{
-				ID:     1,
+				ID:     jID1,
 				People: 1,
 			},
 			gr:                &GroupsRepositoryMock{},
-			evr:               &CarsRepositoryMock{},
+			cr:                &CarsRepositoryMock{},
 			expectedOnJourney: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		ch := app.NewJourney(tc.gr, tc.evr)
+		ch := app.NewJourney(tc.gr, tc.cr)
 		_, err := ch.Handle(context.Background(), tc.cmd)
 		require.Equal(t, tc.expectedErrFunc == nil, err == nil)
 		if err != nil {
@@ -173,10 +181,10 @@ func TestJourney(t *testing.T) {
 		require.Len(t, tc.gr.AddCalls(), 1)
 		require.Equal(t, tc.gr.AddCalls()[0].G.ID(), tc.cmd.(app.JourneyCmd).ID)
 		require.Equal(t, tc.gr.AddCalls()[0].G.People(), tc.cmd.(app.JourneyCmd).People)
-		require.Len(t, tc.evr.FindAllCalls(), 1)
+		require.Len(t, tc.cr.FindAllCalls(), 1)
 		if tc.expectedOnJourney {
 			require.Len(t, tc.gr.UpdateCalls(), 1)
-			require.Len(t, tc.evr.UpdateCalls(), 1)
+			require.Len(t, tc.cr.UpdateCalls(), 1)
 		}
 	}
 }

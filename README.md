@@ -60,11 +60,11 @@ Sample:
 ```json
 [
   {
-    "id": 1,
+    "id": "195cc257-a278-4b83-8344-188bee0b49cf",
     "seats": 4
   },
   {
-    "id": 2,
+    "id": "f513bb90-4c2e-46fb-8392-63000d9d8b0a",
     "seats": 6
   }
 ]
@@ -88,7 +88,7 @@ Sample:
 
 ```json
 {
-  "id": 1,
+  "id": "e3e4a619-8fd1-491a-9642-0a6665035d69",
   "people": 4
 }
 ```
@@ -103,7 +103,7 @@ Responses:
 
 A group of people requests to be dropped off. Whether they traveled or not.
 
-**Body** _required_ A form with the group ID, such that `ID=X`
+**Body** _required_ A form with the group ID, such that `ID=e3e4a619-8fd1-491a-9642-0a6665035d69`
 
 **Content Type** `application/x-www-form-urlencoded`
 
@@ -118,7 +118,7 @@ Responses:
 Given a group ID such that `ID=X`, return the car the group is traveling
 with, or no car if they are still waiting to be served.
 
-**Body** _required_ A url encoded form with the group ID such that `ID=X`
+**Body** _required_ A url encoded form with the group ID such that `ID=e3e4a619-8fd1-491a-9642-0a6665035d69`
 
 **Content Type** `application/x-www-form-urlencoded`
 
@@ -191,7 +191,7 @@ For the next iterations, I'd take a look to:
 * I've not added *Even-Driven* pattern. But, for example, the command *DropOff* could be split in two commands:
 
   1. First, a command requires the domain to drop off the group. 
-  2. This generates a domain event to indicate that Ev has freed some seats
+  2. This generates a domain event to indicate that car has freed some seats
   3. An event listener catches this event and invokes another command to accommodate waiting groups in these seats.
   That way, the two actions would be tested separately. The drawback here is that we'll have to assume *Eventual-Consistency*
 

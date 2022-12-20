@@ -35,10 +35,10 @@ func (j *CarsSeats) UnmarshalJSON(b []byte) error {
 }
 
 type Cars struct {
-	// Car id
-	Id int `json:"id"`
+	// car UUID
+	Id string `json:"id"`
 
-	// Car seats
+	// car seats
 	Seats CarsSeats `json:"seats"`
 }
 
@@ -63,5 +63,5 @@ func (j *Cars) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Schema definition to Initialize a fleet
-type InitializeFleetRqJson []Cars
+// Schema definition to Initialize a fleet of cars
+type CarsRqJson []Cars

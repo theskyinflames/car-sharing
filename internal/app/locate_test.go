@@ -10,6 +10,7 @@ import (
 	"theskyinflames/car-sharing/internal/fixtures"
 	"theskyinflames/car-sharing/internal/helpers"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
@@ -45,7 +46,7 @@ func TestLocate(t *testing.T) {
 				when it's called, then an error is returned`,
 			q: app.LocateQuery{},
 			gr: &GroupsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Group, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Group, error) {
 					return domain.Group{}, randomErr
 				},
 			},
@@ -58,7 +59,7 @@ func TestLocate(t *testing.T) {
 				when it's called, then an error is returned`,
 			q: app.LocateQuery{},
 			gr: &GroupsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Group, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Group, error) {
 					return fixtures.Group{
 						Car: helpers.EvPtr(
 							fixtures.Car{}.Build(),
@@ -67,7 +68,7 @@ func TestLocate(t *testing.T) {
 				},
 			},
 			evr: &CarsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Car, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Car, error) {
 					return domain.Car{}, randomErr
 				},
 			},
@@ -80,7 +81,7 @@ func TestLocate(t *testing.T) {
 				when it's called, then it's returned`,
 			q: app.LocateQuery{},
 			gr: &GroupsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Group, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Group, error) {
 					return fixtures.Group{}.Build(), nil
 				},
 			},
@@ -91,7 +92,7 @@ func TestLocate(t *testing.T) {
 				when it's called, then it's ev is returned`,
 			q: app.LocateQuery{},
 			gr: &GroupsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Group, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Group, error) {
 					return fixtures.Group{
 						Car: helpers.EvPtr(
 							fixtures.Car{}.Build(),
@@ -100,14 +101,14 @@ func TestLocate(t *testing.T) {
 				},
 			},
 			evr: &CarsRepositoryMock{
-				FindByIDFunc: func(_ context.Context, _ int) (domain.Car, error) {
+				FindByIDFunc: func(_ context.Context, _ uuid.UUID) (domain.Car, error) {
 					return fixtures.Car{}.Build(), nil
 				},
 			},
 			expectedCallsToEvr: 1,
 			expectedRs: app.LocateResponse{
 				IsInJourney: true,
-				Ev:          fixtures.Car{}.Build(),
+				Car:         fixtures.Car{}.Build(),
 			},
 		},
 	}

@@ -2,29 +2,32 @@ package domain_test
 
 import (
 	"testing"
+
 	"theskyinflames/car-sharing/internal/domain"
 	"theskyinflames/car-sharing/internal/fixtures"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewGroup(t *testing.T) {
+	id := uuid.New()
 	testCases := []struct {
 		name            string
-		id              int
+		id              uuid.UUID
 		people          int
 		expectedErrFunc func(*testing.T, error)
 	}{
 		{
 			name: `Given an empty group, when it's called then an error is returned`,
-			id:   1,
+			id:   id,
 			expectedErrFunc: func(t *testing.T, err error) {
 				require.ErrorIs(t, err, domain.ErrWrongSize)
 			},
 		},
 		{
 			name:   `Given an oversized group, when it's called then an error is returned`,
-			id:     1,
+			id:     id,
 			people: 7,
 			expectedErrFunc: func(t *testing.T, err error) {
 				require.ErrorIs(t, err, domain.ErrWrongSize)
@@ -32,7 +35,7 @@ func TestNewGroup(t *testing.T) {
 		},
 		{
 			name:   `Given a group, when it's called then no error is returned`,
-			id:     1,
+			id:     id,
 			people: 3,
 		},
 	}

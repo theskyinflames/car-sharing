@@ -8,6 +8,7 @@ import (
 	"theskyinflames/car-sharing/internal/app"
 	"theskyinflames/car-sharing/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
 )
@@ -87,9 +88,9 @@ func TestInitializeFleet(t *testing.T) {
 				then no error is returned`,
 			cmd: app.InitializeFleetCmd{
 				Cars: []app.Car{
-					{ID: 1, Seats: domain.CarCapacity5},
-					{ID: 2, Seats: domain.CarCapacity4},
-					{ID: 3, Seats: domain.CarCapacity6},
+					{ID: uuid.New(), Seats: domain.CarCapacity5},
+					{ID: uuid.New(), Seats: domain.CarCapacity4},
+					{ID: uuid.New(), Seats: domain.CarCapacity6},
 				},
 			},
 			gr:  &GroupsRepositoryMock{},
@@ -110,6 +111,6 @@ func TestInitializeFleet(t *testing.T) {
 		require.Len(t, tc.evr.RemoveAllCalls(), 1)
 
 		cars := tc.cmd.(app.InitializeFleetCmd).Cars
-		require.Equal(t, len(tc.evr.AddAllCalls()[0].Evs), len(cars))
+		require.Equal(t, len(tc.evr.AddAllCalls()[0].Cars), len(cars))
 	}
 }
