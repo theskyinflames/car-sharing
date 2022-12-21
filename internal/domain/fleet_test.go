@@ -175,7 +175,7 @@ func TestDropOff(t *testing.T) {
 				require.ErrorIs(t, err, domain.ErrNotFound)
 			}
 		)
-		_, _, err := fleet.DropOff(groupToDropOff, nil)
+		_, _, err := fleet.DropOff(&groupToDropOff, nil)
 		require.Equal(t, expectedErrFunc == nil, err == nil)
 		if err != nil {
 			expectedErrFunc(t, err)
@@ -199,7 +199,7 @@ func TestDropOff(t *testing.T) {
 			}
 		)
 
-		_, _, err := fleet.DropOff(groupToDropOff, nil)
+		_, _, err := fleet.DropOff(&groupToDropOff, nil)
 		require.NoError(t, err)
 		require.Equal(t, expectedWaitingGroups, fleet.WaitingGroups())
 	})
@@ -221,7 +221,7 @@ func TestDropOff(t *testing.T) {
 			}
 			expectedEvs = []domain.Car{car}
 		)
-		resultEv, onJourney, err := fleet.DropOff(groupToDropOff, &car)
+		resultEv, onJourney, err := fleet.DropOff(&groupToDropOff, &car)
 		require.NoError(t, err)
 		require.Empty(t, onJourney)
 		require.Len(t, resultEv.Journeys(), 1)
@@ -271,7 +271,7 @@ func TestDropOff(t *testing.T) {
 			}
 		)
 
-		resultCar, onJourney, err := fleet.DropOff(groupToDropOff, &car)
+		resultCar, onJourney, err := fleet.DropOff(&groupToDropOff, &car)
 		require.NoError(t, err)
 		require.Len(t, resultCar.Journeys(), 3)
 		require.Equal(t, len(expectedOnJourney), len(onJourney), t.Name())

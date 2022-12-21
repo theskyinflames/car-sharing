@@ -58,10 +58,10 @@ func (f Fleet) Journey(g Group) (Group, Car) {
 }
 
 // DropOff removes a group from the waiting list, or from its ev if it's on journey
-func (f *Fleet) DropOff(g Group, car *Car) (*Car, Journeys, error) {
+func (f *Fleet) DropOff(g *Group, car *Car) (*Car, Journeys, error) {
 	if car == nil {
 		// look for the group in the waiting list
-		if removed := f.removeGroupsFromWaitingList(map[uuid.UUID]Group{g.ID(): g}); removed == 0 {
+		if removed := f.removeGroupsFromWaitingList(map[uuid.UUID]Group{g.ID(): *g}); removed == 0 {
 			return nil, nil, ErrNotFound
 		}
 		return nil, nil, nil
@@ -71,6 +71,7 @@ func (f *Fleet) DropOff(g Group, car *Car) (*Car, Journeys, error) {
 	if err := car.DropOff(g.ID()); err != nil {
 		return nil, nil, err
 	}
+	g.DropOff()
 
 	newJourneys, err := f.RebuildWaitingGroupsList(car)
 	if err != nil {
