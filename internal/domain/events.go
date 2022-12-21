@@ -41,3 +41,18 @@ func NewGroupSetOnJourneyEvent(g Group) GroupSetOnJourneyEvent {
 		EventBasic: events.NewEventBasic(g.ID(), GroupSetOnJourneyEventName, b),
 	}
 }
+
+// GroupDroppedOffEventName is self-described
+const GroupDroppedOffEventName = "group.dropped.off"
+
+// GroupDroppedOffEvent is an event
+type GroupDroppedOffEvent struct {
+	events.EventBasic
+}
+
+// NewGroupDroppedOff is a constructor
+func NewGroupDroppedOff(g Group) GroupDroppedOffEvent {
+	return GroupDroppedOffEvent{
+		EventBasic: events.NewEventBasic(g.ID(), GroupDroppedOffEventName, nil),
+	}
+}

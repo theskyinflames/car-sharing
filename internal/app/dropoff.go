@@ -62,7 +62,7 @@ func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event,
 
 	// here we don't need all the list of evs. We only need the dropping group ev
 	fleet := domain.NewFleet(nil, wg)
-	resultEv, onJourney, err := fleet.DropOff(g, ev)
+	resultEv, onJourney, err := fleet.DropOff(&g, ev)
 	if err != nil {
 		return nil, err
 	}
@@ -79,5 +79,9 @@ func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event,
 		}
 	}
 
-	return nil, ch.gr.RemoveByID(ctx, g.ID())
+	if err := ch.gr.RemoveByID(ctx, g.ID()); err != nil {
+		return nil, err
+	}
+
+	return g.Events(), nil
 }

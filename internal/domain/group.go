@@ -55,6 +55,13 @@ func (g *Group) GetOn(car *Car) {
 	g.RecordEvent(NewGroupSetOnJourneyEvent(*g))
 }
 
+// DropOff drops off the group from its car
+func (g *Group) DropOff() {
+	g.car = nil
+
+	g.RecordEvent(NewGroupDroppedOff(*g))
+}
+
 // IsOnJourney returns TRUE is the group is in a journey
 func (g Group) IsOnJourney() bool {
 	return g.car != nil
