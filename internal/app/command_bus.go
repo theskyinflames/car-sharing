@@ -9,13 +9,19 @@ import (
 )
 
 // BuildCommandBus returns the command/query bus
-func BuildCommandBus(log cqrs.Logger) bus.Bus {
+func BuildCommandBus(log cqrs.Logger, eventsBus bus.Bus) bus.Bus {
 	gr := repository.NewGroupsRepository()
 	evr := repository.NewCarRepository()
 
-	initializeFleetCh := cqrs.ChErrMw(log)(NewInitializeFleet(&gr, &evr))
-	journeyCh := cqrs.ChErrMw(log)(NewJourney(&gr, &evr))
-	dropOffCh := cqrs.ChErrMw(log)(NewDropOff(&gr, &evr))
+	chMw := cqrs.CommandHandlerMultiMiddleware(
+		cqrs.ChEventMw(eventsBus),
+		cqrs.ChErrMw(log),
+	)
+
+	initializeFleetCh := chMw(NewInitializeFleet(&gr, &evr))
+	journeyCh := chMw(NewJourney(&gr, &evr))
+	dropOffCh := chMw(NewDropOff(&gr, &evr))
+
 	localeQh := cqrs.QhErrMw(log)(NewLocate(&gr, &evr))
 
 	bus := bus.New()

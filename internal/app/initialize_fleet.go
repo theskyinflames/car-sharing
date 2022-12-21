@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/events"
 )
 
 // Car is a DTO
@@ -40,7 +41,7 @@ func NewInitializeFleet(gr GroupsRepository, evr CarsRepository) InitializeFleet
 }
 
 // Handle implements the CommandHandler constructor
-func (ch InitializeFleet) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
+func (ch InitializeFleet) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event, error) {
 	co, ok := cmd.(InitializeFleetCmd)
 	if !ok {
 		return nil, NewInvalidCommandError(InitializeFleetName, cmd.Name())
@@ -60,6 +61,13 @@ func (ch InitializeFleet) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.
 	if err := ch.evr.RemoveAll(ctx); err != nil {
 		return nil, err
 	}
+	if err := ch.evr.AddAll(ctx, cars); err != nil {
+		return nil, err
+	}
 
-	return nil, ch.evr.AddAll(ctx, cars)
+	var evs []events.Event
+	for _, car := range cars {
+		evs = append(evs, car.Events()...)
+	}
+	return evs, nil
 }

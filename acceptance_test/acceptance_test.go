@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -23,7 +23,7 @@ const srvPort = ":8080"
 
 func TestAcceptanceTest(t *testing.T) {
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
-	commandBus := app.BuildCommandBus(log)
+	commandBus := app.BuildCommandBus(log, app.BuildEventsBus())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go service.Run(ctx, srvPort)
@@ -305,7 +305,7 @@ func do(t *testing.T, doCmd doCmd) {
 
 	if doCmd.rs != nil {
 		// Check for the expected response
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		received := doCmd.unmarshalRsFunc(t, body)
 		require.Equal(t, doCmd.rs, received)

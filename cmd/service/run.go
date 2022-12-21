@@ -33,7 +33,7 @@ func Run(ctx context.Context, srvPort string) {
 
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
 
-	commandBus := app.BuildCommandBus(log)
+	commandBus := app.BuildCommandBus(log, app.BuildEventsBus())
 
 	r.Put("/cars", api.InitializeFleet(commandBus))
 	r.Post("/journey", api.Journey(commandBus))

@@ -7,6 +7,7 @@ import (
 	"context"
 	"sync"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/events"
 )
 
 // Ensure, that CommandMock does implement cqrs.Command.
@@ -154,7 +155,7 @@ var _ cqrs.CommandHandler = &CommandHandlerMock{}
 //	}
 type CommandHandlerMock struct {
 	// HandleFunc mocks the Handle method.
-	HandleFunc func(contextMoqParam context.Context, command cqrs.Command) ([]cqrs.Event, error)
+	HandleFunc func(contextMoqParam context.Context, command cqrs.Command) ([]events.Event, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -170,7 +171,7 @@ type CommandHandlerMock struct {
 }
 
 // Handle calls HandleFunc.
-func (mock *CommandHandlerMock) Handle(contextMoqParam context.Context, command cqrs.Command) ([]cqrs.Event, error) {
+func (mock *CommandHandlerMock) Handle(contextMoqParam context.Context, command cqrs.Command) ([]events.Event, error) {
 	callInfo := struct {
 		ContextMoqParam context.Context
 		Command         cqrs.Command
@@ -183,7 +184,7 @@ func (mock *CommandHandlerMock) Handle(contextMoqParam context.Context, command 
 	mock.lockHandle.Unlock()
 	if mock.HandleFunc == nil {
 		var (
-			eventsOut []cqrs.Event
+			eventsOut []events.Event
 			errOut    error
 		)
 		return eventsOut, errOut
