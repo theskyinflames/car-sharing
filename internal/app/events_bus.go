@@ -15,6 +15,7 @@ import (
 func BuildEventsBus() bus.Bus {
 	eventsBus := bus.New()
 	eventsBus.Register(domain.CarCreatedEventName, busHandler(eventHandler()))
+	eventsBus.Register(domain.GroupSetOnJourneyEventName, busHandler(eventHandler()))
 	return eventsBus
 }
 

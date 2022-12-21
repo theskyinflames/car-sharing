@@ -92,7 +92,7 @@ func (f *Fleet) RebuildWaitingGroupsList(car *Car) (newJourneys Journeys, err er
 			return nil, err
 		}
 		wg.GetOn(car)
-		newJourneys[wg.id] = wg
+		newJourneys[wg.ID()] = wg
 
 		if car.Availability() == 0 {
 			break

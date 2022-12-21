@@ -72,5 +72,9 @@ func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event,
 		return nil, err
 	}
 
-	return nil, ch.evr.Update(ctx, ev)
+	if err := ch.evr.Update(ctx, ev); err != nil {
+		return nil, err
+	}
+
+	return g.Events(), nil
 }

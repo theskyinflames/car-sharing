@@ -103,6 +103,7 @@ func (e *Car) GetOn(g Group) error {
 		return ErrNotFit
 	}
 	e.journeys[g.ID()] = g
+
 	return nil
 }
 
