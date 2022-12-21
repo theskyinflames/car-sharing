@@ -135,11 +135,11 @@ Responses:
 
 It's important to me to decouple the domain from infra layers and test them separately. So I've applied Hexagonal architecture, which means there is a kind of onion architecture. I've also used CQRS by splitting queries from commands. 
 
-Applying HA with DDD and CQRS could be too much at first look. But using them give these advantages:
+Applying HA along with DDD, CQRS and Even-Driven could be too much at first look. But using them give these advantages:
 
 * Hexagonal architecture allows me to focus in each layer and test them separately.
 * I put the domain in the center by applying the DDD approach. All logic related to the problem solution is there, and all are tested.
-* Applying CQRS by separating commands and queries could be unnecessary, given that, in this case, there are no domain events that the commands would propagate. Buts using this pattern helps to consider each use case to be implemented. 
+* Applying CQRS by separating commands and queries could be unnecessary, given that, in this case, there are no domain events that the commands would propagate. Buts using this pattern helps to consider each use case to be implemented.
 
 ![HA diagram](./assets/HA.png)
 
@@ -187,13 +187,6 @@ For the next iterations, I'd take a look to:
 * Inject the Fleet domain service as *DI*, so it will make the app layer test simpler.
 
 * Current implementation is not transactional. Adding transactional storage could also be the next step.
-
-* I've not added *Even-Driven* pattern. But, for example, the command *DropOff* could be split in two commands:
-
-  1. First, a command requires the domain to drop off the group. 
-  2. This generates a domain event to indicate that car has freed some seats
-  3. An event listener catches this event and invokes another command to accommodate waiting groups in these seats.
-  That way, the two actions would be tested separately. The drawback here is that we'll have to assume *Eventual-Consistency*
 
 * Adding o11y (observability) integration, with a Prometheus, por example
 
