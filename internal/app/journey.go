@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/events"
 )
 
 // JourneyCmd is a command
@@ -35,7 +36,7 @@ func NewJourney(gr GroupsRepository, evr CarsRepository) Journey {
 }
 
 // Handle implements CommandHandler interface
-func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
+func (ch Journey) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event, error) {
 	co, ok := cmd.(JourneyCmd)
 	if !ok {
 		return nil, NewInvalidCommandError(JourneyName, cmd.Name())

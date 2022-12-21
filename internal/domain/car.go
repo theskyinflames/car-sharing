@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/theskyinflames/cqrs-eda/pkg/ddd"
 )
 
 // CarCapacity is the number of seats that en EV has
@@ -43,23 +44,28 @@ type Journeys map[uuid.UUID]Group
 
 // Car is an entity
 type Car struct {
-	id       uuid.UUID
+	ddd.AggregateBasic
+
 	capacity CarCapacity
 	journeys Journeys
 }
 
 // NewCar is a constructor
 func NewCar(id uuid.UUID, capacity CarCapacity) Car {
-	return Car{
-		id:       id,
-		capacity: capacity,
-		journeys: make(Journeys),
+	car := Car{
+		AggregateBasic: ddd.NewAggregateBasic(id),
+		capacity:       capacity,
+		journeys:       make(Journeys),
 	}
+
+	car.AggregateBasic.RecordEvent(NewCarCreatedEvent(car))
+
+	return car
 }
 
 // ID is a getter
 func (e Car) ID() uuid.UUID {
-	return e.id
+	return e.AggregateBasic.ID()
 }
 
 // Capacity is a getter
@@ -74,7 +80,7 @@ func (e Car) Journeys() Journeys {
 
 // Hydrate hydrates an EV
 func (e *Car) Hydrate(id uuid.UUID, capacity CarCapacity, journeys Journeys) {
-	e.id = id
+	e.AggregateBasic = ddd.NewAggregateBasic(id)
 	e.capacity = capacity
 	e.journeys = journeys
 }

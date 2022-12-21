@@ -20,16 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theskyinflames/cqrs-eda/pkg/bus"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/events"
 	"github.com/theskyinflames/cqrs-eda/pkg/helpers"
 )
-
-type dispatchableMock struct {
-	name string
-}
-
-func (d dispatchableMock) Name() string {
-	return d.name
-}
 
 func TestInitializeFleet(t *testing.T) {
 	testCases := []struct {
@@ -87,7 +80,7 @@ func TestInitializeFleet(t *testing.T) {
 			},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, errors.New("")
 				},
 			},
@@ -100,7 +93,7 @@ func TestInitializeFleet(t *testing.T) {
 			rq:      api.CarsRqJson{{Id: uuid.New().String(), Seats: 5}},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, nil
 				},
 			},
@@ -113,7 +106,7 @@ func TestInitializeFleet(t *testing.T) {
 			rq:      api.CarsRqJson{},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, nil
 				},
 			},
@@ -187,7 +180,7 @@ func TestJourney(t *testing.T) {
 			rq:      api.JourneyRqJson{Id: gID, People: 5},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, errors.New("")
 				},
 			},
@@ -200,7 +193,7 @@ func TestJourney(t *testing.T) {
 			rq:      api.JourneyRqJson{},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, nil
 				},
 			},
@@ -213,7 +206,7 @@ func TestJourney(t *testing.T) {
 			rq:      api.JourneyRqJson{Id: gID, People: 5},
 			headers: map[string]string{"Content-Type": "application/json"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, nil
 				},
 			},
@@ -260,7 +253,7 @@ func TestDropOff(t *testing.T) {
 			then a 500 HTTP status is returned`,
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, errors.New("")
 				},
 			},
@@ -272,7 +265,7 @@ func TestDropOff(t *testing.T) {
 			then a 404 HTTP status is returned`,
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, repository.ErrNotFound
 				},
 			},
@@ -284,7 +277,7 @@ func TestDropOff(t *testing.T) {
 			then a 200 HTTP status is returned`,
 			headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 			ch: &CommandHandlerMock{
-				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]cqrs.Event, error) {
+				HandleFunc: func(_ context.Context, _ cqrs.Command) ([]events.Event, error) {
 					return nil, nil
 				},
 			},
@@ -403,7 +396,8 @@ func TestLocale(t *testing.T) {
 			continue
 		}
 		buff := &bytes.Buffer{}
-		buff.ReadFrom(w.Body)
+		_, err := buff.ReadFrom(w.Body)
+		require.NoError(t, err)
 
 		var rs api.LocateRsJson
 		require.NoError(t, json.Unmarshal(buff.Bytes(), &rs))

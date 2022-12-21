@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/theskyinflames/cqrs-eda/pkg/cqrs"
+	"github.com/theskyinflames/cqrs-eda/pkg/events"
 )
 
 // DropOffCmd is a command
@@ -34,7 +35,7 @@ func NewDropOff(gr GroupsRepository, evr CarsRepository) DropOff {
 }
 
 // Handle implements CommandHandler interface
-func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]cqrs.Event, error) {
+func (ch DropOff) Handle(ctx context.Context, cmd cqrs.Command) ([]events.Event, error) {
 	co, ok := cmd.(DropOffCmd)
 	if !ok {
 		return nil, NewInvalidCommandError(DropOffName, cmd.Name())
