@@ -23,7 +23,7 @@ const srvPort = ":8080"
 
 func TestAcceptanceTest(t *testing.T) {
 	log := log.New(os.Stdout, "car-sharing: ", os.O_APPEND)
-	commandBus := app.BuildCommandBus(log, app.BuildEventsBus())
+	commandBus := app.BuildCommandQueryBus(log, app.BuildEventsBus())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go service.Run(ctx, srvPort)
