@@ -22,7 +22,7 @@ func Run(ctx context.Context, srvPort string) {
 	cors := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedHeaders: []string{"*"},
-		AllowedMethods: []string{"POST", "PUT", "POST"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "POST"},
 	})
 	r.Use(cors.Handler)
 	r.Use(middleware.Logger)
