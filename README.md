@@ -45,7 +45,7 @@ Responses:
 
 * **200 OK** When the service is ready to receive requests.
 
-### PUT /cars
+### PUT /v1/cars
 
 Load the list of available cars in the service and remove all previous data
 (existing journeys and cars). This method may be called more than once during
@@ -76,7 +76,7 @@ Responses:
 * **400 Bad Request** When there is a failure in the request format, expected
   headers, or the payload can't be unmarshalled.
 
-### POST /journey
+### POST /v1/journey
 
 A group of people requests to perform a journey.
 
@@ -99,7 +99,7 @@ Responses:
 * **400 Bad Request** When there is a failure in the request format or the
   payload can't be unmarshalled.
 
-### POST /dropoff
+### POST /v1/journey/dropoff
 
 A group of people requests to be dropped off. Whether they traveled or not.
 
@@ -113,7 +113,7 @@ Responses:
 * **404 Not Found** When the group is not to be found.
 * **400 Bad Request** When there is a failure in the request format or the payload can't be unmarshalled.
 
-### POST /locate
+### POST /v1/journey/locate
 
 Given a group ID such that `ID=X`, return the car the group is traveling
 with, or no car if they are still waiting to be served.

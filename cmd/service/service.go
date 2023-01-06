@@ -35,10 +35,10 @@ func Run(ctx context.Context, srvPort string) {
 
 	commandBus := app.BuildCommandQueryBus(log, app.BuildEventsBus())
 
-	r.Put("/cars", api.InitializeFleet(commandBus))
-	r.Post("/journey", api.Journey(commandBus))
-	r.Post("/dropoff", api.DropOff(commandBus))
-	r.Post("/locate", api.Locate(commandBus))
+	r.Put("/v1/cars", api.InitializeFleet(commandBus))
+	r.Post("/v1/journey", api.Journey(commandBus))
+	r.Post("/v1/journey/dropoff", api.DropOff(commandBus))
+	r.Post("/v1/journey/locate", api.Locate(commandBus))
 
 	fmt.Printf("serving at port %s\n", srvPort)
 	if err := http.ListenAndServe(srvPort, r); err != nil {

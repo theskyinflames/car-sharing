@@ -55,7 +55,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.InitializeFleet(commandBus)),
 				http.MethodPut,
-				"/cars",
+				"/v1/cars",
 				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
@@ -73,7 +73,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
-				"/journey",
+				"/v1/journey",
 				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
@@ -91,7 +91,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
-				"/journey",
+				"/v1/journey",
 				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusBadRequest,
@@ -109,7 +109,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
-				"/journey",
+				"/v1/journey",
 				buildJSONRq(t, rq),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
@@ -131,7 +131,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID1),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
@@ -153,7 +153,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID2),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
@@ -171,7 +171,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
-				"/journey",
+				"/v1/journey",
 				buildJSONRq(t, rqJourney),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
@@ -187,7 +187,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Journey(commandBus)),
 				http.MethodPost,
-				"/journey",
+				"/v1/journey",
 				buildJSONRq(t, rqJourney),
 				map[string]string{"Content-Type": "application/json"},
 				http.StatusOK,
@@ -198,7 +198,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID3),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
@@ -209,7 +209,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID4),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
@@ -222,7 +222,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.DropOff(commandBus)),
 				http.MethodPost,
-				"/dropoff",
+				"/v1/journey/dropoff",
 				buildFormValues(gID1),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
@@ -242,7 +242,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID3),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusOK,
@@ -253,7 +253,7 @@ func TestAcceptanceTest(t *testing.T) {
 			do(t, doCmd{
 				http.HandlerFunc(api.Locate(commandBus)),
 				http.MethodPost,
-				"/locate",
+				"/v1/journey/locate",
 				buildFormValues(gID4),
 				map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
 				http.StatusNoContent,
